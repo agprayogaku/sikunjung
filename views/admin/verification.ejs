@@ -1,0 +1,188 @@
+<%- include('./partials/adminHeader', { title: 'Loket Verifikasi Kedatangan', active: 'verification' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Operasional loket</span>
+    <h2 class="page-title">Verifikasi Kedatangan Pengunjung</h2>
+    <p class="page-subtitle">Periksa e-KTP asli, cocokkan data, lalu terbitkan nomor antrean fisik.</p>
+  </div>
+  <a href="/admin/antrean?date=<%= verificationDate %>" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-megaphone" aria-hidden="true"></i> Buka pengelolaan antrean
+  </a>
+</div>
+
+<% if (typeof successQueue !== 'undefined' && successQueue) { %>
+  <div class="surface-card status-banner p-4 text-center mb-4">
+    <span class="success-icon sm mx-auto mb-2">
+      <i class="bi bi-check-lg" aria-hidden="true"></i>
+    </span>
+    <span class="section-label mb-1">Kedatangan berhasil diverifikasi</span>
+    <h2 class="display-6 fw-bold text-success mb-2">Nomor antrean: <%= successQueue %></h2>
+    <p class="small text-muted mb-3">Nomor antrean telah dicatat untuk kunjungan tanggal <%= successDate %>.</p>
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+      <a href="/admin/tiket/<%= successQueue %>?date=<%= successDate %>" target="_blank" class="btn btn-primary">
+        <i class="bi bi-printer" aria-hidden="true"></i> Cetak tiket petugas (A6)
+      </a>
+      <a href="/admin/pendaftaran?date=<%= successDate %>" class="btn btn-outline-secondary">
+        <i class="bi bi-list-ul" aria-hidden="true"></i> Daftar tanggal ini
+      </a>
+      <a href="/admin/verifikasi?date=<%= successDate %>" class="btn btn-outline-secondary">
+        Verifikasi pengunjung berikutnya <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </div>
+  </div>
+<% } %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<% if (typeof record !== 'undefined' && record && record.visitDate !== todayStr) { %>
+  <div class="alert alert-warning" role="alert">
+    <i class="bi bi-calendar-x-fill" aria-hidden="true"></i>
+    <span>
+      Pendaftaran ini untuk tanggal kunjungan <strong><%= record.visitDate %></strong>.
+      Verifikasi hanya dapat dilakukan pada tanggal kunjungan, bukan hari ini (<%= todayStr %>).
+    </span>
+  </div>
+<% } %>
+
+<div class="surface-card p-4 mb-4">
+  <form action="/admin/verifikasi" method="GET">
+    <label class="form-label" for="verificationReg">Masukkan / scan nomor registrasi pengunjung</label>
+    <div class="d-flex flex-column flex-sm-row gap-2">
+      <input type="text" id="verificationReg" name="reg" class="form-control form-control-lg flex-grow-1" placeholder="Contoh: REG-20261109-ABC123" value="<%= typeof queryReg !== 'undefined' ? queryReg : '' %>" required autofocus autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button type="submit" class="btn btn-primary px-4 flex-shrink-0 text-nowrap">
+        <i class="bi bi-search" aria-hidden="true"></i> Periksa data
+      </button>
+    </div>
+    <div class="form-text">Gunakan scanner QR atau ketik nomor registrasi pada bukti pendaftaran pengunjung.</div>
+  </form>
+</div>
+
+<% if (typeof record !== 'undefined' && record) { %>
+  <div class="surface-card p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+      <div>
+        <h3 class="h5 fw-bold mb-1"><%= record.registrationNumber %></h3>
+        <span class="small text-muted">Tanggal kunjungan: <strong class="text-body"><%= record.visitDate %></strong></span>
+      </div>
+      <% if (record.status === 'MENUNGGU VERIFIKASI') { %>
+        <span class="badge badge-soft-warning"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Menunggu verifikasi</span>
+      <% } else { %>
+        <span class="badge badge-soft-success"><i class="bi bi-check-circle" aria-hidden="true"></i> <%= record.status %></span>
+      <% } %>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <div class="surface-muted h-100 p-3">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <span class="icon-square primary"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+            <h4 class="h6 fw-bold mb-0">Data Warga Binaan (WBP)</h4>
+          </div>
+          <dl class="row g-2 small mb-0">
+            <dt class="col-5 text-muted fw-normal">Nama WBP</dt>
+            <dd class="col-7 fw-semibold mb-0"><%= record.wbp.nama %></dd>
+            <dt class="col-5 text-muted fw-normal">Tgl lahir / usia</dt>
+            <dd class="col-7 mb-0"><%= record.wbp.tanggalLahir %> (<%= record.wbp.usia %> tahun)</dd>
+            <dt class="col-5 text-muted fw-normal">Tanggal masuk</dt>
+            <dd class="col-7 mb-0"><%= record.wbp.tanggalMasuk %></dd>
+            <dt class="col-5 text-muted fw-normal">Status WBP</dt>
+            <dd class="col-7 mb-0"><span class="badge badge-soft-primary"><%= record.wbp.jenisWbp %></span></dd>
+            <dt class="col-5 text-muted fw-normal">Kamar Sel</dt>
+            <dd class="col-7 mb-0"><span class="badge badge-soft-warning" title="<%= record.wbp.lokasiSel || '-' %>"><i class="bi bi-geo-alt" aria-hidden="true"></i> <%= formatCellLocation(record.wbp.lokasiSel) %></span></dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="surface-muted h-100 p-3">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <span class="icon-square primary"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+            <h4 class="h6 fw-bold mb-0">Pendaftar utama (e-KTP asli)</h4>
+          </div>
+          <dl class="row g-2 small mb-0">
+            <dt class="col-5 text-muted fw-normal">Nama lengkap</dt>
+            <dd class="col-7 fw-semibold mb-0"><%= record.primaryVisitor.nama %></dd>
+            <dt class="col-5 text-muted fw-normal">NIK lengkap</dt>
+            <dd class="col-7 mb-0"><code><%= record.primaryVisitor.nik %></code></dd>
+            <dt class="col-5 text-muted fw-normal">Jenis kelamin</dt>
+            <dd class="col-7 mb-0"><%= record.primaryVisitor.jenisKelamin %></dd>
+            <dt class="col-5 text-muted fw-normal">Hubungan</dt>
+            <dd class="col-7 mb-0"><%= record.primaryVisitor.relasi %></dd>
+            <dt class="col-5 text-muted fw-normal">No. HP / WA</dt>
+            <dd class="col-7 mb-0"><%= record.primaryVisitor.telepon %></dd>
+            <dt class="col-5 text-muted fw-normal">Alamat</dt>
+            <dd class="col-7 mb-0"><%= record.primaryVisitor.alamat %></dd>
+            <dt class="col-5 text-muted fw-normal">Rombongan</dt>
+            <dd class="col-7 mb-0"><%= record.totalVisitors %> orang (<%= record.totalAdults %> dewasa, <%= record.childrenCount %> anak)</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <% if (record.adultFollowers && record.adultFollowers.length > 0) { %>
+      <div class="surface-muted mt-3 p-3">
+        <h4 class="h6 fw-bold mb-2"><i class="bi bi-people me-1" aria-hidden="true"></i> Pengikut dewasa</h4>
+        <div class="d-flex flex-column gap-2">
+          <% record.adultFollowers.forEach(function(f, idx) { %>
+            <div class="d-flex flex-wrap gap-2 align-items-center small">
+              <span class="badge badge-soft-neutral"><%= idx + 1 %></span>
+              <strong><%= f.nama %></strong>
+              <span class="text-muted">(<%= f.relasi %>)</span>
+              <span class="badge badge-outline">NIK: <%= f.nik %></span>
+              <span class="text-muted"><%= f.jenisKelamin %></span>
+              <span class="text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> <%= f.alamat %></span>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="surface-muted mt-3 p-3">
+      <h4 class="h6 fw-bold mb-2"><i class="bi bi-box-seam me-1" aria-hidden="true"></i> Barang bawaan / titipan</h4>
+      <% if (record.luggageItems && record.luggageItems.length > 0) { %>
+        <ul class="mb-0 small ps-3">
+          <% record.luggageItems.forEach(function(item) { %>
+            <li>
+              <strong><%= item.itemName %></strong>: <%= item.unit === 'Rupiah' ? 'Rp ' : '' %><%= item.quantity.toLocaleString('id-ID') %> <%= item.unit %>
+              <%= item.notes ? '(' + item.notes + ')' : '' %>
+            </li>
+          <% }); %>
+        </ul>
+      <% } else { %>
+        <p class="small text-muted mb-0">Tidak ada barang titipan.</p>
+      <% } %>
+    </div>
+
+    <% if (record.status === 'MENUNGGU VERIFIKASI' && record.visitDate === todayStr) { %>
+      <form action="/admin/verifikasi" method="POST" class="mt-4" data-confirm="KTP dan identitas pengunjung telah diperiksa sesuai. Terbitkan nomor antrean sekarang?" data-confirm-title="Verifikasi kedatangan" data-confirm-label="Ya, terbitkan antrean">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="regNumber" value="<%= record.registrationNumber %>">
+        <button type="submit" class="btn btn-success btn-lg w-100">
+          <i class="bi bi-check2-circle" aria-hidden="true"></i> KTP sesuai — verifikasi &amp; terbitkan nomor antrean
+        </button>
+      </form>
+    <% } else if (record.status === 'MENUNGGU VERIFIKASI' && record.visitDate !== todayStr) { %>
+      <button type="button" class="btn btn-secondary btn-lg w-100 mt-4" disabled>
+        <i class="bi bi-calendar-x" aria-hidden="true"></i> Verifikasi tersedia pada tanggal kunjungan
+      </button>
+    <% } else if (record.queueInfo && record.queueInfo.queueNumber) { %>
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 p-3 surface-muted">
+        <div>
+          <span class="small text-muted d-block">Pengunjung sudah diverifikasi</span>
+          <strong class="h5 text-primary mb-0">Nomor antrean: <%= record.queueInfo.queueNumber %></strong>
+        </div>
+        <a href="/admin/tiket/<%= record.queueInfo.queueNumber %>?date=<%= record.visitDate %>" target="_blank" class="btn btn-primary">
+          <i class="bi bi-printer" aria-hidden="true"></i> Cetak ulang tiket (A6)
+        </a>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
+<%- include('./partials/adminFooter') %>

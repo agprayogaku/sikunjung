@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof title !== 'undefined' ? title + ' - SIKUNJUNG' : 'Portal Petugas - SIKUNJUNG' %></title>
+  <%- include('./headAssets') %>
+</head>
+<body class="auth-body">
+  <a class="skip-link" href="#main-content">Lewati ke formulir</a>
+
+  <div class="auth-shell">
+    <section class="auth-brand" aria-label="Informasi SIKUNJUNG">
+      <a href="/" class="brand">
+        <span class="brand-mark" aria-hidden="true"><i class="bi bi-building-lock"></i></span>
+        <span class="brand-text">
+          <span class="brand-title">SIKUNJUNG</span>
+          <span class="brand-subtitle">Lapas Kelas IIB Purwakarta</span>
+        </span>
+      </a>
+
+      <div>
+        <h1 class="auth-brand-title">Operasional kunjungan terpadu.</h1>
+        <p class="auth-brand-text">
+          Verifikasi kedatangan, antrean, data WBP, dan laporan layanan dalam satu sistem.
+        </p>
+        <div class="auth-feature">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <span>Akses terbatas untuk petugas resmi.</span>
+        </div>
+        <div class="auth-feature">
+          <i class="bi bi-journal-check" aria-hidden="true"></i>
+          <span>Setiap tindakan operasional tercatat pada audit log.</span>
+        </div>
+      </div>
+
+      <p class="small mb-0 auth-brand-meta">
+        Kementerian Imigrasi dan Pemasyarakatan Republik Indonesia
+      </p>
+    </section>
+
+    <main class="auth-main" id="main-content">
+      <div class="auth-card">
+        <button type="button" class="theme-toggle-btn auth-theme-toggle" aria-label="Aktifkan tema gelap" aria-pressed="false" title="Ganti tema">
+          <i class="theme-icon bi bi-moon-stars" aria-hidden="true"></i>
+          <span class="theme-text">Tema Gelap</span>
+        </button>
+
+        <div class="auth-mobile-brand">
+          <a href="/" class="brand">
+            <span class="brand-mark" aria-hidden="true"><i class="bi bi-building-lock"></i></span>
+            <span class="brand-text">
+              <span class="brand-title">SIKUNJUNG</span>
+              <span class="brand-subtitle">Lapas Kelas IIB Purwakarta</span>
+            </span>
+          </a>
+        </div>
+
+        <div class="d-none d-lg-flex align-items-center mb-4">
+          <span class="badge badge-soft-primary">
+            <i class="bi bi-lock" aria-hidden="true"></i> Akses Petugas
+          </span>
+        </div>
+
+        <h2 class="auth-title"><%= typeof authTitle !== 'undefined' ? authTitle : 'Portal Petugas Lapas' %></h2>
+        <p class="auth-subtitle"><%= typeof authSubtitle !== 'undefined' ? authSubtitle : 'Masuk menggunakan akun petugas resmi.' %></p>

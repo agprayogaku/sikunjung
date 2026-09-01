@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof title !== 'undefined' ? title + ' - Panel Petugas SIKUNJUNG' : 'Panel Petugas - SIKUNJUNG Lapas Purwakarta' %></title>
+  <%- include('../../partials/headAssets') %>
+</head>
+<body class="admin-body">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+
+  <div class="admin-shell">
+    <aside class="admin-sidebar d-none d-lg-flex" aria-label="Sidebar panel petugas">
+      <div class="admin-brand">
+        <a href="/admin/dashboard" class="brand">
+          <span class="brand-mark" aria-hidden="true"><i class="bi bi-building-lock"></i></span>
+          <span class="brand-text">
+            <span class="brand-title">SIKUNJUNG</span>
+            <span class="brand-subtitle">Lapas Kelas IIB Purwakarta</span>
+          </span>
+        </a>
+      </div>
+      <div class="admin-sidebar-body">
+        <%- include('./sidebarNav', { active: typeof active !== 'undefined' ? active : '' }) %>
+      </div>
+    </aside>
+
+    <div class="offcanvas offcanvas-start admin-offcanvas" tabindex="-1" id="adminMobileNav" aria-labelledby="adminMobileNavLabel">
+      <div class="offcanvas-header border-bottom">
+        <div class="d-flex align-items-center gap-2">
+          <span class="brand-mark" aria-hidden="true"><i class="bi bi-building-lock"></i></span>
+          <div>
+            <h2 class="h6 fw-bold mb-0" id="adminMobileNavLabel">SIKUNJUNG</h2>
+            <span class="text-muted small">Lapas Kelas IIB Purwakarta</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        <div class="admin-sidebar-body h-100">
+          <%- include('./sidebarNav', { active: typeof active !== 'undefined' ? active : '' }) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <button type="button" class="btn btn-ghost btn-icon d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#adminMobileNav" aria-controls="adminMobileNav" aria-label="Buka menu panel">
+            <i class="bi bi-list" aria-hidden="true"></i>
+          </button>
+          <div class="min-w-0">
+            <h1 class="admin-topbar-title text-truncate">Panel Petugas</h1>
+          </div>
+        </div>
+
+        <div class="admin-topbar-actions">
+          <span class="badge badge-soft-neutral d-none d-md-inline-flex d-lg-none">
+            <i class="bi bi-person-circle" aria-hidden="true"></i>
+            <%= typeof adminUser !== 'undefined' && adminUser ? adminUser.username : 'Petugas' %> (<%= typeof adminUser !== 'undefined' && adminUser ? adminUser.role : 'ADMIN' %>)
+          </span>
+          <button type="button" class="theme-toggle-btn d-lg-none" aria-label="Aktifkan tema gelap" aria-pressed="false" title="Ganti tema">
+            <i class="theme-icon bi bi-moon-stars" aria-hidden="true"></i>
+            <span class="theme-text">Tema Gelap</span>
+          </button>
+          <form action="/admin/logout" method="POST" class="d-inline-flex d-lg-none">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+              <span class="btn-label">Keluar</span>
+            </button>
+          </form>
+        </div>
+      </header>
+
+      <main id="main-content" class="admin-content">

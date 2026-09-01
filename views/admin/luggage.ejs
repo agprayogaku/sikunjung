@@ -1,0 +1,120 @@
+<%- include('./partials/adminHeader', { title: 'Kategori Barang Titipan', active: 'luggage' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Master data</span>
+    <h2 class="page-title">Kategori Barang Titipan</h2>
+    <p class="page-subtitle">Atur jenis, satuan, dan kuantitas maksimal barang titipan yang diperbolehkan dibawa keluarga.</p>
+  </div>
+  <span class="badge badge-soft-primary">
+    <i class="bi bi-box-seam" aria-hidden="true"></i>
+    <%= categories.length %> kategori
+  </span>
+</div>
+
+<section class="surface-card mb-4" aria-labelledby="luggage-create-title">
+  <button class="collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#luggageCreatePanel"
+          aria-expanded="false" aria-controls="luggageCreatePanel">
+    <span class="icon-square primary"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+    <span class="flex-grow-1">
+      <span class="d-block fw-bold" id="luggage-create-title">Tambah kategori barang baru</span>
+      <span class="d-block text-muted small">Kategori baru langsung aktif setelah disimpan.</span>
+    </span>
+    <i class="bi bi-chevron-down collapse-chevron" aria-hidden="true"></i>
+  </button>
+
+  <div class="collapse" id="luggageCreatePanel">
+    <div class="p-4 border-top">
+      <form action="/admin/barang" method="POST" class="row g-3">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="action" value="create">
+
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="luggageName">Nama kategori</label>
+          <input type="text" id="luggageName" name="name" class="form-control" placeholder="Contoh: Alat Ibadah" required>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="luggageUnit">Satuan</label>
+          <input type="text" id="luggageUnit" name="unit" class="form-control" placeholder="Contoh: Buah, Paket" required>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="luggageMax">Batas kuantitas</label>
+          <input type="number" id="luggageMax" name="maxQuantity" class="form-control" min="1" value="1" required>
+        </div>
+
+        <div class="col-12 col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="surface-card table-card mb-4" aria-labelledby="luggage-list-title">
+  <div class="p-4 pb-3">
+    <h3 class="h6 fw-bold mb-0" id="luggage-list-title">Daftar kategori barang titipan</h3>
+  </div>
+
+  <% if (categories.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-box" aria-hidden="true"></i></span>
+      <p class="empty-title">Belum ada kategori barang</p>
+      <p class="empty-text">Tambahkan kategori pertama menggunakan formulir Tambah kategori di atas.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover align-middle">
+        <caption class="visually-hidden">Daftar kategori barang titipan</caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nama Kategori</th>
+            <th scope="col">Batas Maksimal</th>
+            <th scope="col">Satuan</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% categories.forEach(function(c) { %>
+            <tr>
+              <td data-label="ID"><code><%= c.id %></code></td>
+              <td data-label="Nama Kategori"><strong><%= c.name %></strong></td>
+              <td class="text-nowrap" data-label="Batas Maksimal">
+                <%= c.isCurrency ? 'Rp ' + c.maxQuantity.toLocaleString('id-ID') : c.maxQuantity %>
+              </td>
+              <td data-label="Satuan"><%= c.unit %></td>
+              <td data-label="Status">
+                <% if (c.active) { %>
+                  <span class="badge badge-soft-success"><i class="bi bi-check-circle" aria-hidden="true"></i> Aktif</span>
+                <% } else { %>
+                  <span class="badge badge-soft-neutral"><i class="bi bi-pause-circle" aria-hidden="true"></i> Nonaktif</span>
+                <% } %>
+              </td>
+              <td class="table-actions-cell" data-label="Aksi">
+                <form action="/admin/barang" method="POST" class="table-actions justify-content-end">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="action" value="toggle">
+                  <input type="hidden" name="id" value="<%= c.id %>">
+                  <button type="submit" class="btn btn-sm <%= c.active ? 'btn-outline-secondary' : 'btn-soft-primary' %>">
+                    <% if (c.active) { %>
+                      <i class="bi bi-pause-circle" aria-hidden="true"></i> Nonaktifkan
+                    <% } else { %>
+                      <i class="bi bi-play-circle" aria-hidden="true"></i> Aktifkan
+                    <% } %>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

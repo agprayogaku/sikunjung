@@ -1,0 +1,71 @@
+<nav class="admin-nav" aria-label="Navigasi panel petugas">
+  <span class="admin-nav-label">Operasional</span>
+  <a href="/admin/dashboard" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'dashboard' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'dashboard' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span>
+  </a>
+  <a href="/admin/verifikasi" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'verification' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'verification' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-upc-scan" aria-hidden="true"></i><span>Loket Verifikasi</span>
+  </a>
+  <a href="/admin/antrean" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'queue' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'queue' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-megaphone" aria-hidden="true"></i><span>Antrean</span>
+  </a>
+  <a href="/admin/pendaftaran" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'registrations' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'registrations' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-journal-text" aria-hidden="true"></i><span>Pendaftaran</span>
+  </a>
+
+  <span class="admin-nav-label">Data</span>
+  <a href="/admin/wbp" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'wbp' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'wbp' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-people" aria-hidden="true"></i><span>Data WBP</span>
+  </a>
+  <a href="/admin/barang" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'luggage' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'luggage' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-box-seam" aria-hidden="true"></i><span>Barang Titipan</span>
+  </a>
+
+  <span class="admin-nav-label">Manajemen</span>
+  <a href="/admin/laporan" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'reports' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'reports' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Laporan</span>
+  </a>
+  <a href="/admin/pengaturan" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'settings' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'settings' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-sliders" aria-hidden="true"></i><span>Pengaturan</span>
+  </a>
+  <a href="/admin/backup" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'backup' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'backup' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-archive" aria-hidden="true"></i><span>Backup &amp; Restore</span>
+  </a>
+  <a href="/admin/audit" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'audit' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'audit' ? 'aria-current="page"' : '' %>>
+    <i class="bi bi-clipboard-data" aria-hidden="true"></i><span>Audit Log</span>
+  </a>
+
+  <% if (typeof adminUser !== 'undefined' && adminUser && adminUser.role === 'MASTER') { %>
+    <span class="admin-nav-label">Master</span>
+    <a href="/admin/kelola-admin" class="admin-nav-link <%= typeof active !== 'undefined' && active === 'admins' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'admins' ? 'aria-current="page"' : '' %>>
+      <i class="bi bi-person-gear" aria-hidden="true"></i><span>Kelola Petugas</span>
+      <span class="admin-nav-badge">Master</span>
+    </a>
+  <% } %>
+</nav>
+
+<div class="admin-sidebar-footer">
+  <div class="admin-user">
+    <span class="admin-user-avatar" aria-hidden="true"><%= typeof adminUser !== 'undefined' && adminUser ? adminUser.username.slice(0, 2) : 'SP' %></span>
+    <div class="min-w-0">
+      <span class="admin-user-name"><%= typeof adminUser !== 'undefined' && adminUser ? adminUser.username : 'Petugas' %></span>
+      <span class="admin-user-role"><%= typeof adminUser !== 'undefined' && adminUser ? adminUser.role : 'ADMIN' %></span>
+    </div>
+  </div>
+  <div class="d-flex align-items-center gap-2 mt-2">
+    <button type="button" class="theme-toggle-btn" aria-label="Aktifkan tema gelap" aria-pressed="false" title="Ganti tema">
+      <i class="theme-icon bi bi-moon-stars" aria-hidden="true"></i>
+      <span class="theme-text">Tema Gelap</span>
+    </button>
+    <form action="/admin/logout" method="POST" class="flex-grow-1">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span>Keluar</span>
+      </button>
+    </form>
+  </div>
+  <a href="/" class="footer-link mt-2 justify-content-center w-100" target="_blank" rel="noopener">
+    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Lihat situs publik
+  </a>
+</div>

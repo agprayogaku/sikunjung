@@ -1,0 +1,107 @@
+<%- include('./partials/adminHeader', { title: 'Audit Log', active: 'audit' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Jejak rekam</span>
+    <h2 class="page-title">Catatan Audit Jejak Rekam</h2>
+    <p class="page-subtitle">Seluruh aksi sensitif petugas dan sistem dicatat untuk integritas dan transparansi.</p>
+  </div>
+
+  <form action="/admin/audit" method="GET" class="d-flex flex-wrap align-items-end gap-2">
+    <div>
+      <label class="form-label mb-1" for="auditMonth">Bulan</label>
+      <input type="month" id="auditMonth" name="month" class="form-control form-control-sm" value="<%= selectedMonth %>">
+    </div>
+    <div>
+      <label class="form-label mb-1" for="auditActor">Petugas</label>
+      <input type="search" id="auditActor" name="actor" class="form-control form-control-sm" value="<%= actorFilter %>" placeholder="Cari username">
+    </div>
+    <div>
+      <label class="form-label mb-1" for="auditAction">Aksi</label>
+      <input type="search" id="auditAction" name="action" list="auditActionOptions" class="form-control form-control-sm" value="<%= actionFilter %>" placeholder="Cari tipe aksi">
+      <datalist id="auditActionOptions">
+        <% availableActions.forEach(function(action) { %>
+          <option value="<%= action %>"></option>
+        <% }); %>
+      </datalist>
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">
+      <i class="bi bi-funnel" aria-hidden="true"></i> Filter
+    </button>
+    <a href="/admin/audit" class="btn btn-sm btn-outline-secondary">Reset</a>
+  </form>
+</div>
+
+<section class="surface-card table-card" aria-labelledby="audit-list-title">
+  <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h3 class="h6 fw-bold mb-0" id="audit-list-title"><%= totalLogs %> catatan pada <%= selectedMonth %></h3>
+    </div>
+    <span class="badge badge-soft-neutral">
+      <i class="bi bi-shield-check" aria-hidden="true"></i> Audit trail
+    </span>
+  </div>
+
+  <% if (totalLogs === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-clipboard-data" aria-hidden="true"></i></span>
+      <p class="empty-title">Belum ada log yang cocok</p>
+      <p class="empty-text">Tidak ada aktivitas petugas yang sesuai filter untuk bulan <%= selectedMonth %>.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover table-sm align-middle">
+        <caption class="visually-hidden">Catatan audit petugas bulan <%= selectedMonth %></caption>
+        <thead>
+          <tr>
+            <th scope="col">Waktu (WIB)</th>
+            <th scope="col">Aksi</th>
+            <th scope="col">Petugas</th>
+            <th scope="col">Rincian Parameter</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logs.forEach(function(l) { %>
+            <tr>
+              <td class="text-nowrap" data-label="Waktu (WIB)"><%= l.timestamp ? l.timestamp.slice(0, 19).replace('T', ' ') : '-' %></td>
+              <td data-label="Aksi"><span class="badge badge-soft-primary"><%= l.action %></span></td>
+              <td data-label="Petugas"><strong><%= l.actor %></strong></td>
+              <td class="audit-details" data-label="Rincian Parameter">
+                <% if (l.details) { %>
+                  <code><%= JSON.stringify(l.details) %></code>
+                <% } else { %>
+                  <span class="text-muted">-</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (totalPages > 1) { %>
+      <%
+        var baseQuery = 'month=' + encodeURIComponent(selectedMonth);
+        if (actorFilter) baseQuery += '&actor=' + encodeURIComponent(actorFilter);
+        if (actionFilter) baseQuery += '&action=' + encodeURIComponent(actionFilter);
+      %>
+      <div class="p-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span class="small text-muted">Halaman <%= currentPage %> dari <%= totalPages %> (<%= pageSize %> per halaman)</span>
+        <div class="d-flex gap-2">
+          <% if (currentPage > 1) { %>
+            <a href="/admin/audit?<%= baseQuery %>&page=<%= currentPage - 1 %>" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-chevron-left" aria-hidden="true"></i> Sebelumnya
+            </a>
+          <% } %>
+          <% if (currentPage < totalPages) { %>
+            <a href="/admin/audit?<%= baseQuery %>&page=<%= currentPage + 1 %>" class="btn btn-sm btn-outline-secondary">
+              Berikutnya <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            </a>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

@@ -1,0 +1,177 @@
+<%- include('../partials/header', { title: 'Cek Status & Pembatalan Kunjungan', active: 'status' }) %>
+
+<div class="page-container page-container-narrow">
+  <div class="page-header">
+    <div>
+      <span class="section-label">Layanan mandiri</span>
+      <h1 class="page-title">Cek Status &amp; Pembatalan</h1>
+      <p class="page-subtitle">Masukkan Nomor Registrasi dan NIK pendaftar utama untuk memeriksa status kunjungan atau membatalkan pendaftaran.</p>
+    </div>
+  </div>
+
+  <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+    <div class="alert alert-success" role="alert">
+      <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+      <span><%= successMessage %></span>
+    </div>
+  <% } %>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+      <span><%= error %></span>
+    </div>
+  <% } %>
+
+  <div class="surface-card p-4 mb-4">
+    <form action="/status" method="POST">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label class="form-label" for="regNumber">Nomor Registrasi Pendaftaran</label>
+      <input type="text" id="regNumber" name="reg" class="form-control" placeholder="Contoh: REG-20261109-A7K2Q9" value="<%= typeof queryReg !== 'undefined' ? queryReg : '' %>" required aria-describedby="regHelp">
+      <div class="form-text" id="regHelp">Nomor Registrasi tertera pada bukti pendaftaran yang Anda unduh.</div>
+
+      <label class="form-label mt-3" for="statusNik">NIK Pendaftar Utama</label>
+      <input type="text" id="statusNik" name="nik" class="form-control" maxlength="16" pattern="[0-9]{16}" inputmode="numeric" placeholder="16 digit NIK pendaftar utama" required aria-describedby="nikHelp">
+      <div class="form-text" id="nikHelp">NIK dipakai untuk memastikan hanya pemilik pendaftaran yang dapat melihat detail.</div>
+
+      <div class="d-grid d-sm-block mt-3">
+        <button type="submit" class="btn btn-primary d-sm-inline-flex">
+          <i class="bi bi-search" aria-hidden="true"></i> Cari Data
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <% if (typeof record !== 'undefined' && record) { %>
+    <%
+      var statusOrder = ['MENUNGGU VERIFIKASI', 'HADIR TERVERIFIKASI', 'DIPANGGIL', 'SEDANG BERKUNJUNG', 'SELESAI'];
+      var currentStatusIndex = statusOrder.indexOf(record.status);
+      var isCancelled = record.status === 'DIBATALKAN' || record.status === 'DITOLAK' || record.status === 'TIDAK HADIR';
+      var statusBadgeClass = 'badge-soft-neutral';
+      if (record.status === 'MENUNGGU VERIFIKASI') statusBadgeClass = 'badge-soft-warning';
+      else if (record.status === 'HADIR TERVERIFIKASI' || record.status === 'DIPANGGIL') statusBadgeClass = 'badge-soft-primary';
+      else if (record.status === 'SEDANG BERKUNJUNG') statusBadgeClass = 'badge-soft-info';
+      else if (record.status === 'SELESAI') statusBadgeClass = 'badge-soft-success';
+      else if (isCancelled) statusBadgeClass = 'badge-soft-danger';
+    %>
+
+    <div class="surface-card p-4 mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <span class="section-label">Nomor registrasi</span>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <h2 class="h5 fw-bold mb-0" id="registrationNumber"><%= record.registrationNumber %></h2>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-copy="<%= record.registrationNumber %>" aria-label="Salin nomor registrasi">
+              <i class="bi bi-clipboard" aria-hidden="true"></i> Salin
+            </button>
+          </div>
+        </div>
+        <span class="badge <%= statusBadgeClass %>"><%= record.status %></span>
+      </div>
+
+      <% if (!isCancelled) { %>
+        <div class="status-timeline mb-4" aria-label="Progres status kunjungan">
+          <div class="status-timeline-item <%= currentStatusIndex >= 0 ? 'done' : '' %>">
+            <span class="status-timeline-dot"><i class="bi bi-journal-check" aria-hidden="true"></i></span>
+            <span>Terdaftar</span>
+          </div>
+          <div class="status-timeline-item <%= currentStatusIndex >= 1 ? 'done' : (currentStatusIndex === 0 ? 'current' : '') %>">
+            <span class="status-timeline-dot"><i class="bi bi-person-check" aria-hidden="true"></i></span>
+            <span>Verifikasi</span>
+          </div>
+          <div class="status-timeline-item <%= currentStatusIndex >= 2 ? 'done' : (currentStatusIndex === 1 ? 'current' : '') %>">
+            <span class="status-timeline-dot"><i class="bi bi-megaphone" aria-hidden="true"></i></span>
+            <span>Dipanggil</span>
+          </div>
+          <div class="status-timeline-item <%= currentStatusIndex >= 3 ? 'done' : (currentStatusIndex === 2 ? 'current' : '') %>">
+            <span class="status-timeline-dot"><i class="bi bi-door-open" aria-hidden="true"></i></span>
+            <span>Berkunjung</span>
+          </div>
+          <div class="status-timeline-item <%= currentStatusIndex >= 4 ? 'done' : (currentStatusIndex === 3 ? 'current' : '') %>">
+            <span class="status-timeline-dot"><i class="bi bi-flag" aria-hidden="true"></i></span>
+            <span>Selesai</span>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="alert alert-danger mb-4">
+          <i class="bi bi-x-octagon-fill" aria-hidden="true"></i>
+          <span>Pendaftaran ini berstatus <strong><%= record.status %></strong>. Silakan hubungi petugas loket apabila membutuhkan informasi lebih lanjut.</span>
+        </div>
+      <% } %>
+
+      <dl class="row g-3 small mb-0">
+        <div class="col-12 col-sm-6">
+          <dt class="text-muted fw-normal mb-1">Nama WBP</dt>
+          <dd class="fw-semibold mb-0"><%= record.wbp.nama %></dd>
+        </div>
+        <div class="col-12 col-sm-6">
+          <dt class="text-muted fw-normal mb-1">Tanggal kunjungan</dt>
+          <dd class="fw-semibold mb-0"><%= record.visitDate %></dd>
+        </div>
+        <div class="col-12 col-sm-6">
+          <dt class="text-muted fw-normal mb-1">Pendaftar utama</dt>
+          <dd class="fw-semibold mb-0"><%= record.primaryVisitor.nama %></dd>
+        </div>
+        <div class="col-12 col-sm-6">
+          <dt class="text-muted fw-normal mb-1">NIK (disamarkan)</dt>
+          <dd class="fw-semibold mb-0"><%= record.primaryVisitor.nik.slice(0, 4) %>********<%= record.primaryVisitor.nik.slice(-4) %></dd>
+        </div>
+        <div class="col-12 col-sm-6">
+          <dt class="text-muted fw-normal mb-1">Total rombongan</dt>
+          <dd class="fw-semibold mb-0"><%= record.totalVisitors %> orang (<%= record.totalAdults %> dewasa, <%= record.childrenCount %> anak)</dd>
+        </div>
+        <div class="col-12 col-sm-6">
+          <dt class="text-muted fw-normal mb-1">Nomor antrean</dt>
+          <dd class="fw-semibold mb-0">
+            <% if (record.queueInfo && record.queueInfo.queueNumber) { %>
+              <span class="badge badge-soft-primary"><%= record.queueInfo.queueNumber %></span>
+            <% } else { %>
+              <span class="text-muted">Belum diterbitkan</span>
+            <% } %>
+          </dd>
+        </div>
+      </dl>
+
+      <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+        <a href="/daftar/pdf/<%= record.registrationNumber %>?token=<%= encodeURIComponent(pdfToken) %>" class="btn btn-outline-secondary">
+          <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Unduh ulang bukti PDF
+        </a>
+      </div>
+    </div>
+
+    <% if (record.status === 'MENUNGGU VERIFIKASI') { %>
+      <div class="danger-zone">
+        <div class="d-flex align-items-start gap-2 mb-2">
+          <span class="icon-square danger"><i class="bi bi-x-circle" aria-hidden="true"></i></span>
+          <div>
+            <h2 class="danger-zone-title mb-1">Batalkan pendaftaran ini</h2>
+            <p class="small text-muted mb-0">
+              Jika Anda berhalangan hadir, batalkan pendaftaran agar kuota WBP dapat digunakan oleh keluarga lain.
+            </p>
+          </div>
+        </div>
+
+        <form action="/status/batal" method="POST" data-confirm="Apakah Anda yakin ingin membatalkan pendaftaran kunjungan ini? Kuota akan dibebaskan kembali." data-confirm-title="Batalkan pendaftaran" data-confirm-label="Ya, batalkan" data-confirm-variant="danger">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="regNumber" value="<%= record.registrationNumber %>">
+
+          <div class="mb-3">
+            <label class="form-label" for="cancelNik">Konfirmasi NIK pendaftar utama (16 digit) <span class="text-danger">*</span></label>
+            <input type="text" id="cancelNik" name="nik" class="form-control" maxlength="16" pattern="[0-9]{16}" inputmode="numeric" placeholder="Masukkan NIK lengkap untuk verifikasi" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="cancelReason">Alasan pembatalan (opsional)</label>
+            <input type="text" id="cancelReason" name="reason" class="form-control" placeholder="Contoh: Ada keperluan mendadak">
+          </div>
+
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-x-circle" aria-hidden="true"></i> Konfirmasi Pembatalan
+          </button>
+        </form>
+      </div>
+    <% } %>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

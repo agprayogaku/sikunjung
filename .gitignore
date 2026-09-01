@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+storage/*
+!storage/.gitkeep
+storage-safety-backups/
+coverage/
+*.log
+prd_lapas_purwakarta.md
+.DS_Store
+Thumbs.db
+

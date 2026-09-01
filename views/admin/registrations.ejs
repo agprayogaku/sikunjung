@@ -1,0 +1,130 @@
+<%- include('./partials/adminHeader', { title: 'Daftar Registrasi Kunjungan', active: 'registrations' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Data pendaftaran</span>
+    <h2 class="page-title">Daftar Registrasi Kunjungan</h2>
+    <p class="page-subtitle">Data untuk tanggal yang dipilih. Lihat rincian, filter status, cetak ulang bukti, atau tolak pendaftaran.</p>
+  </div>
+
+  <form action="/admin/pendaftaran" method="GET" class="d-flex flex-wrap align-items-end gap-2">
+    <div>
+      <label class="form-label mb-1" for="registrationDate">Tanggal kunjungan</label>
+      <input type="date" id="registrationDate" name="date" class="form-control form-control-sm" value="<%= selectedDate %>" data-auto-submit>
+    </div>
+    <div>
+      <label class="form-label mb-1" for="registrationStatus">Status</label>
+      <select id="registrationStatus" name="status" class="form-select form-select-sm" data-auto-submit>
+        <option value="">Semua status</option>
+        <option value="MENUNGGU VERIFIKASI" <%= statusFilter === 'MENUNGGU VERIFIKASI' ? 'selected' : '' %>>Menunggu verifikasi</option>
+        <option value="HADIR TERVERIFIKASI" <%= statusFilter === 'HADIR TERVERIFIKASI' ? 'selected' : '' %>>Hadir terverifikasi</option>
+        <option value="DIPANGGIL" <%= statusFilter === 'DIPANGGIL' ? 'selected' : '' %>>Dipanggil</option>
+        <option value="SEDANG BERKUNJUNG" <%= statusFilter === 'SEDANG BERKUNJUNG' ? 'selected' : '' %>>Sedang berkunjung</option>
+        <option value="SELESAI" <%= statusFilter === 'SELESAI' ? 'selected' : '' %>>Selesai</option>
+        <option value="DIBATALKAN" <%= statusFilter === 'DIBATALKAN' ? 'selected' : '' %>>Dibatalkan</option>
+        <option value="DITOLAK" <%= statusFilter === 'DITOLAK' ? 'selected' : '' %>>Ditolak</option>
+      </select>
+    </div>
+  </form>
+</div>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<section class="surface-card table-card" aria-labelledby="registrations-title">
+  <div class="p-4 pb-3">
+    <h3 class="h6 fw-bold mb-0" id="registrations-title"><%= records.length %> data ditemukan</h3>
+  </div>
+
+  <% if (records.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-inbox" aria-hidden="true"></i></span>
+      <p class="empty-title">Tidak ada pendaftaran</p>
+      <p class="empty-text">Belum ada data yang cocok dengan tanggal dan status yang dipilih.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover align-middle">
+        <caption class="visually-hidden">Daftar pendaftaran kunjungan tanggal <%= selectedDate %></caption>
+        <thead>
+          <tr>
+            <th scope="col">Registrasi / Status</th>
+            <th scope="col">WBP / Kamar</th>
+            <th scope="col">Pendaftar</th>
+            <th scope="col" class="text-end" style="min-width: 160px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% records.forEach(function(r) { %>
+            <tr>
+              <td data-label="Registrasi / Status">
+                <div>
+                  <strong class="d-block"><%= r.registrationNumber %></strong>
+                  <% if (r.status === 'MENUNGGU VERIFIKASI') { %>
+                    <span class="badge badge-soft-warning text-wrap mt-1"><%= r.status %></span>
+                  <% } else if (r.status === 'HADIR TERVERIFIKASI' || r.status === 'DIPANGGIL') { %>
+                    <span class="badge badge-soft-primary text-wrap mt-1"><%= r.status %></span>
+                  <% } else if (r.status === 'SEDANG BERKUNJUNG') { %>
+                    <span class="badge badge-soft-info text-wrap mt-1"><%= r.status %></span>
+                  <% } else if (r.status === 'SELESAI') { %>
+                    <span class="badge badge-soft-success text-wrap mt-1"><%= r.status %></span>
+                  <% } else { %>
+                    <span class="badge badge-soft-danger text-wrap mt-1"><%= r.status %></span>
+                  <% } %>
+                  <% if (r.queueInfo && r.queueInfo.queueNumber) { %>
+                    <span class="badge badge-outline mt-1">Antrean <%= r.queueInfo.queueNumber %></span>
+                  <% } else { %>
+                    <span class="d-block small text-muted mt-1">Belum antrean</span>
+                  <% } %>
+                </div>
+              </td>
+              <td data-label="WBP / Kamar">
+                <div>
+                  <span class="d-block"><%= r.wbp.nama %></span>
+                  <span class="badge badge-soft-warning mt-1" title="<%= r.wbp.lokasiSel || '-' %>"><i class="bi bi-geo-alt" aria-hidden="true"></i> <%= formatCellLocation(r.wbp.lokasiSel) %></span>
+                </div>
+              </td>
+              <td data-label="Pendaftar">
+                <div>
+                  <span class="d-block"><%= r.primaryVisitor.nama %></span>
+                  <span class="d-block small text-muted"><code><%= r.primaryVisitor.nik.slice(0, 4) %>********<%= r.primaryVisitor.nik.slice(-4) %></code></span>
+                  <span class="d-block small text-muted"><%= r.totalVisitors %> pengunjung</span>
+                </div>
+              </td>
+              <td class="table-actions-cell" data-label="Aksi">
+                <div class="table-actions justify-content-end">
+                  <a href="/daftar/pdf/<%= r.registrationNumber %>?token=<%= encodeURIComponent(r.verifyToken) %>" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Bukti
+                  </a>
+
+                  <% if (r.status === 'MENUNGGU VERIFIKASI') { %>
+                    <a href="/admin/verifikasi?reg=<%= r.registrationNumber %>" class="btn btn-sm btn-primary">
+                      <i class="bi bi-upc-scan" aria-hidden="true"></i> Verifikasi
+                    </a>
+
+                    <form action="/admin/pendaftaran/status" method="POST" class="d-inline" data-confirm="Tolak pendaftaran ini? Kuota akan dibebaskan kembali dan pengunjung tidak dapat hadir." data-confirm-title="Tolak pendaftaran" data-confirm-label="Ya, tolak" data-confirm-variant="danger">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="date" value="<%= selectedDate %>">
+                      <input type="hidden" name="regNumber" value="<%= r.registrationNumber %>">
+                      <input type="hidden" name="newStatus" value="DITOLAK">
+                      <input type="hidden" name="reason" value="Ditolak petugas loket Lapas">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary text-danger">
+                        <i class="bi bi-x-circle" aria-hidden="true"></i> Tolak
+                      </button>
+                    </form>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

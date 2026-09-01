@@ -1,0 +1,800 @@
+<%- include('../partials/header', { title: 'Pendaftaran Kunjungan Online', active: 'register' }) %>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <span class="section-label">Formulir publik</span>
+      <h1 class="page-title">Formulir Pendaftaran Kunjungan Online</h1>
+      <p class="page-subtitle">Isi data WBP dan rombongan pengunjung secara akurat sesuai kartu identitas (e-KTP).</p>
+    </div>
+    <a href="/status" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-search" aria-hidden="true"></i> Cek status pendaftaran
+    </a>
+  </div>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+      <span><strong>Pendaftaran belum dapat diproses.</strong> <%= error %></span>
+    </div>
+  <% } %>
+
+  <form id="registrationForm" action="/daftar" method="POST">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <nav class="stepper mb-3" aria-label="Langkah pendaftaran">
+      <a href="#step-wbp" class="step-item active" data-step-link="1">
+        <span class="step-number">1</span><span>Pilih WBP</span>
+      </a>
+      <a href="#step-date" class="step-item" data-step-link="2">
+        <span class="step-number">2</span><span>Jadwal</span>
+      </a>
+      <a href="#step-primary" class="step-item" data-step-link="3">
+        <span class="step-number">3</span><span>Pendaftar</span>
+      </a>
+      <a href="#step-followers" class="step-item" data-step-link="4">
+        <span class="step-number">4</span><span>Rombongan</span>
+      </a>
+      <a href="#step-luggage" class="step-item" data-step-link="5">
+        <span class="step-number">5</span><span>Barang</span>
+      </a>
+      <a href="#step-confirm" class="step-item" data-step-link="6">
+        <span class="step-number">6</span><span>Konfirmasi</span>
+      </a>
+    </nav>
+
+    <div class="registration-layout">
+      <div class="registration-main">
+        <!-- STEP 1 -->
+        <section class="form-section form-step" id="step-wbp" data-step="1" aria-labelledby="step-wbp-title">
+          <div class="form-section-header">
+            <span class="form-section-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="form-section-title" id="step-wbp-title">Cari Data Warga Binaan Pemasyarakatan</h2>
+              <p class="form-section-subtitle">Ketik nama WBP yang ingin dikunjungi, minimal 2 huruf.</p>
+            </div>
+          </div>
+          <div class="form-section-body">
+            <div id="wbpSearchSection">
+              <label class="form-label" for="wbpQuery">Nama Warga Binaan Pemasyarakatan (WBP)</label>
+              <div class="input-group">
+                <input type="text" id="wbpQuery" class="form-control" placeholder="Contoh: Tatang" autocomplete="off" aria-describedby="wbpSearchHelp">
+                <button type="button" id="btnSearchWbp" class="btn btn-primary">
+                  <i class="bi bi-search" aria-hidden="true"></i>
+                  <span class="btn-text">Cari WBP</span>
+                </button>
+              </div>
+              <div id="wbpSearchHelp" class="form-text">Hasil pencarian hanya menampilkan data yang diizinkan untuk publik.</div>
+              <div id="wbpSearchResults" class="mt-2 d-none" aria-live="polite"></div>
+            </div>
+
+            <div id="selectedWbpCard" class="d-none mt-2 p-3 rounded selected-wbp-card">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h3 id="selectedWbpName" class="h6 fw-bold mb-0 text-primary">-</h3>
+                    <span id="selectedWbpTypeBadge" class="badge badge-soft-primary">-</span>
+                    <span id="selectedWbpVisitingBadge" class="badge badge-soft-success">-</span>
+                  </div>
+                  <div class="small text-muted" id="selectedWbpMeta">Tgl lahir: - | Usia: - | Masuk: -</div>
+                </div>
+                <button type="button" id="btnChangeWbp" class="btn btn-sm btn-outline-secondary text-danger">
+                  <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Ganti WBP
+                </button>
+              </div>
+              <input type="hidden" name="wbpId" id="selectedWbpId">
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="form-section form-step" id="step-date" data-step="2" aria-labelledby="step-date-title">
+          <div class="form-section-header">
+            <span class="form-section-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="form-section-title" id="step-date-title">Pilih tanggal kunjungan</h2>
+              <p class="form-section-subtitle">Tanggal yang tampil sudah disesuaikan dengan jadwal WBP.</p>
+            </div>
+          </div>
+          <div class="form-section-body">
+            <div id="dateNotice" class="alert alert-info mb-2" role="status">
+              <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+              <span>Silakan pilih WBP terlebih dahulu untuk melihat jadwal tanggal yang tersedia.</span>
+            </div>
+            <div id="availableDatesContainer" class="choice-list" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section class="form-section form-step" id="step-primary" data-step="3" aria-labelledby="step-primary-title">
+          <div class="form-section-header">
+            <span class="form-section-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="form-section-title" id="step-primary-title">Data pendaftar utama</h2>
+              <p class="form-section-subtitle">Keluarga penanggung jawab yang akan hadir di loket.</p>
+            </div>
+          </div>
+          <div class="form-section-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="primaryNik">NIK (16 digit) <span class="text-danger">*</span></label>
+                <input type="text" name="primaryNik" id="primaryNik" class="form-control" maxlength="16" pattern="[0-9]{16}" inputmode="numeric" placeholder="Contoh: 3201012345678901" autocomplete="off" required>
+                <div id="nikLookupStatus" class="form-text" aria-live="polite"></div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="primaryNama">Nama lengkap sesuai e-KTP <span class="text-danger">*</span></label>
+                <input type="text" name="primaryNama" id="primaryNama" class="form-control" placeholder="Nama lengkap Anda" autocomplete="name" required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label" for="primaryJenisKelamin">Jenis kelamin <span class="text-danger">*</span></label>
+                <select name="primaryJenisKelamin" id="primaryJenisKelamin" class="form-select" required>
+                  <option value="">Pilih jenis kelamin</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label" for="primaryRelasi">Hubungan dengan WBP <span class="text-danger">*</span></label>
+                <input type="text" name="primaryRelasi" id="primaryRelasi" class="form-control" placeholder="Contoh: Istri, Ayah, Adik" required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label" for="primaryTelepon">Nomor WhatsApp / HP aktif <span class="text-danger">*</span></label>
+                <input type="tel" name="primaryTelepon" id="primaryTelepon" class="form-control" placeholder="081234567890" autocomplete="tel" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="primaryAlamat">Alamat domisili sesuai e-KTP <span class="text-danger">*</span></label>
+                <textarea name="primaryAlamat" id="primaryAlamat" class="form-control" rows="2" placeholder="Nama jalan, kelurahan, kecamatan, kabupaten/kota" autocomplete="street-address" required></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4 -->
+        <section class="form-section form-step" id="step-followers" data-step="4" aria-labelledby="step-followers-title">
+          <div class="form-section-header">
+            <span class="form-section-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+            <div class="flex-grow-1">
+              <h2 class="form-section-title" id="step-followers-title">Rombongan pengikut &amp; anak</h2>
+              <p class="form-section-subtitle">Maksimal 4 dewasa tanpa anak, atau 3 dewasa dengan 1–2 anak.</p>
+            </div>
+          </div>
+          <div class="form-section-body">
+            <div class="alert alert-info" id="quotaCounterAlert" aria-live="polite">
+              <i class="bi bi-people-fill" aria-hidden="true"></i>
+              <span><strong>Status kuota:</strong> 1 pendaftar utama, <span id="followerCountText">0 pengikut dewasa</span>, <span id="childCountText">0 anak</span> (total: <span id="totalVisitorText">1</span> pengunjung).</span>
+            </div>
+
+            <div class="d-flex mb-3">
+              <button type="button" id="btnAddFollower" class="btn btn-soft-primary">
+                <i class="bi bi-person-plus" aria-hidden="true"></i> Tambah pengikut dewasa
+              </button>
+            </div>
+
+            <div id="followersContainer" class="d-flex flex-column gap-3 mb-3"></div>
+
+            <div class="row align-items-center g-2 pt-2 border-top">
+              <div class="col-12 col-sm-7">
+                <label class="form-label mb-0" for="childrenCount">Jumlah pengikut anak (usia 0–14 tahun)</label>
+              </div>
+              <div class="col-12 col-sm-5">
+                <select name="childrenCount" id="childrenCount" class="form-select">
+                  <option value="0" selected>0 anak (tanpa anak)</option>
+                  <option value="1">1 anak</option>
+                  <option value="2">2 anak (batas maksimal)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 5 -->
+        <section class="form-section form-step" id="step-luggage" data-step="5" aria-labelledby="step-luggage-title">
+          <div class="form-section-header">
+            <span class="form-section-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="form-section-title" id="step-luggage-title">Barang titipan untuk WBP</h2>
+              <p class="form-section-subtitle">Opsional. Isi jumlah hanya untuk barang yang akan dititipkan.</p>
+            </div>
+          </div>
+          <div class="form-section-body">
+            <div class="d-flex flex-column gap-3">
+              <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                <% categories.forEach(function(cat, index) { %>
+                  <div class="p-3 rounded surface-muted">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                      <span class="fw-semibold small"><%= cat.name %></span>
+                      <span class="badge badge-soft-neutral">
+                        Maks: <%= cat.isCurrency ? 'Rp ' + cat.maxQuantity.toLocaleString('id-ID') : cat.maxQuantity + ' ' + cat.unit %>
+                      </span>
+                    </div>
+                    <div class="row g-2">
+                      <div class="col-6 col-sm-4">
+                        <input type="hidden" name="luggage[<%= index %>][itemId]" value="<%= cat.id %>">
+                        <input type="hidden" name="luggage[<%= index %>][itemName]" value="<%= cat.name %>">
+                        <input type="hidden" name="luggage[<%= index %>][unit]" value="<%= cat.unit %>">
+                        <label class="visually-hidden" for="luggageQty<%= index %>">Jumlah <%= cat.name %></label>
+                        <input type="number" id="luggageQty<%= index %>" name="luggage[<%= index %>][quantity]" class="form-control form-control-sm luggage-qty" placeholder="Jumlah (<%= cat.unit %>)" min="0" max="<%= cat.maxQuantity %>" value="0" inputmode="numeric">
+                      </div>
+                      <div class="col-6 col-sm-8">
+                        <label class="visually-hidden" for="luggageNote<%= index %>">Rincian <%= cat.name %></label>
+                        <input type="text" id="luggageNote<%= index %>" name="luggage[<%= index %>][notes]" class="form-control form-control-sm" placeholder="Rincian (contoh: nasi, celana kain, obat)">
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="empty-state py-4">
+                  <span class="empty-icon"><i class="bi bi-box" aria-hidden="true"></i></span>
+                  <p class="empty-title">Belum ada kategori barang titipan</p>
+                  <p class="empty-text">Anda tetap dapat melanjutkan pendaftaran tanpa barang titipan.</p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 6 -->
+        <section class="form-section form-step" id="step-confirm" data-step="6" aria-labelledby="step-confirm-title">
+          <div class="form-section-header">
+            <span class="form-section-icon"><i class="bi bi-check2-square" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="form-section-title" id="step-confirm-title">Konfirmasi &amp; kirim</h2>
+              <p class="form-section-subtitle">Periksa kembali data pada ringkasan sebelum mengirim.</p>
+            </div>
+          </div>
+          <div class="form-section-body">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+              <label class="form-check-label small" for="agreeTerms">
+                Saya menyatakan bahwa data yang saya masukkan benar sesuai e-KTP asli. Saya bersedia
+                mematuhi seluruh tata tertib dan jadwal kunjungan di Lapas Kelas IIB Purwakarta.
+              </label>
+            </div>
+
+            <button type="submit" id="btnSubmitRegistration" class="btn btn-primary btn-lg w-100">
+              <i class="bi bi-send" aria-hidden="true"></i>
+              Simpan &amp; Kirim Pendaftaran
+            </button>
+            <p class="form-text text-center mt-2 mb-0">
+              Nomor registrasi dan bukti PDF akan ditampilkan setelah pendaftaran berhasil.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="registration-summary mb-3" aria-labelledby="summary-title">
+        <div class="surface-card summary-card">
+          <h2 class="summary-title" id="summary-title">Ringkasan pendaftaran</h2>
+          <div class="summary-row">
+            <span class="summary-row-label">WBP</span>
+            <span class="summary-row-value" id="summaryWbp">Belum dipilih</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-row-label">Tanggal</span>
+            <span class="summary-row-value" id="summaryDate">Belum dipilih</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-row-label">Pengunjung</span>
+            <span class="summary-row-value" id="summaryVisitors">1 orang</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-row-label">Barang titipan</span>
+            <span class="summary-row-value" id="summaryLuggage">Tidak ada</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>
+
+<script nonce="<%= cspNonce %>">
+  (function () {
+    'use strict';
+
+    var selectedWbp = null;
+    var nextFollowerIndex = 0;
+
+    var wbpQueryInput = document.getElementById('wbpQuery');
+    var btnSearchWbp = document.getElementById('btnSearchWbp');
+    var wbpSearchResults = document.getElementById('wbpSearchResults');
+    var selectedWbpCard = document.getElementById('selectedWbpCard');
+    var wbpSearchSection = document.getElementById('wbpSearchSection');
+    var btnChangeWbp = document.getElementById('btnChangeWbp');
+
+    var followersContainer = document.getElementById('followersContainer');
+    var childrenSelect = document.getElementById('childrenCount');
+    var btnSubmitRegistration = document.getElementById('btnSubmitRegistration');
+    var searchTimer = null;
+
+    function setSearchState(isLoading) {
+      btnSearchWbp.disabled = isLoading;
+      var icon = btnSearchWbp.querySelector('i');
+      var text = btnSearchWbp.querySelector('.btn-text');
+      if (isLoading) {
+        icon.className = 'spinner-border spinner-border-sm';
+        icon.setAttribute('role', 'status');
+        icon.setAttribute('aria-hidden', 'true');
+        text.textContent = 'Mencari...';
+      } else {
+        icon.className = 'bi bi-search';
+        icon.removeAttribute('role');
+        icon.setAttribute('aria-hidden', 'true');
+        text.textContent = 'Cari WBP';
+      }
+    }
+
+    function showSearchMessage(message, type) {
+      wbpSearchResults.classList.remove('d-none');
+      wbpSearchResults.innerHTML = '';
+      var box = document.createElement('div');
+      box.className = 'alert ' + (type === 'danger' ? 'alert-danger' : 'alert-info') + ' mb-0';
+      var icon = document.createElement('i');
+      icon.className = 'bi ' + (type === 'danger' ? 'bi-exclamation-octagon-fill' : 'bi-info-circle-fill');
+      icon.setAttribute('aria-hidden', 'true');
+      var span = document.createElement('span');
+      span.textContent = message;
+      box.appendChild(icon);
+      box.appendChild(span);
+      wbpSearchResults.appendChild(box);
+    }
+
+    function performWbpSearch() {
+      var query = wbpQueryInput.value.trim();
+      if (query.length < 2) {
+        showSearchMessage('Ketik minimal 2 huruf untuk mencari WBP.', 'danger');
+        wbpQueryInput.focus();
+        return;
+      }
+
+      setSearchState(true);
+      fetch('/api/wbp/search?q=' + encodeURIComponent(query))
+        .then(function (response) {
+          if (!response.ok) throw new Error('request-failed');
+          return response.json();
+        })
+        .then(function (data) {
+          renderWbpResults(data);
+        })
+        .catch(function () {
+          showSearchMessage('Gagal mengambil data WBP. Periksa koneksi lalu coba lagi.', 'danger');
+        })
+        .finally(function () {
+          setSearchState(false);
+        });
+    }
+
+    function renderWbpResults(items) {
+      wbpSearchResults.innerHTML = '';
+      wbpSearchResults.classList.remove('d-none');
+
+      if (!items || items.length === 0) {
+        showSearchMessage('Tidak ada WBP yang cocok dengan nama tersebut.', 'info');
+        return;
+      }
+
+      items.forEach(function (item) {
+        var isForbidden = item.bolehDikunjungi === 'Tidak Boleh Dikunjungi' || item.bolehDikunjungi === 'Hanya Titipan Barang';
+        var row = document.createElement('div');
+        row.className = 'wbp-result';
+
+        var body = document.createElement('div');
+        var titleRow = document.createElement('div');
+        titleRow.className = 'd-flex flex-wrap align-items-center gap-2 mb-1';
+
+        var name = document.createElement('strong');
+        name.textContent = item.nama;
+        titleRow.appendChild(name);
+
+        var typeBadge = document.createElement('span');
+        typeBadge.className = 'badge badge-soft-primary';
+        typeBadge.textContent = item.jenisWbp;
+        titleRow.appendChild(typeBadge);
+
+        var visitBadge = document.createElement('span');
+        visitBadge.className = 'badge ' + (isForbidden ? 'badge-soft-danger' : item.bolehDikunjungi === 'Hanya Titipan Barang' ? 'badge-soft-warning' : 'badge-soft-success');
+        visitBadge.textContent = item.bolehDikunjungi;
+        titleRow.appendChild(visitBadge);
+
+        var meta = document.createElement('div');
+        meta.className = 'small text-muted';
+        meta.textContent = 'Usia: ' + item.usia + ' tahun | Masuk: ' + item.tanggalMasuk;
+
+        body.appendChild(titleRow);
+        body.appendChild(meta);
+
+        var action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'btn btn-sm ' + (isForbidden ? 'btn-outline-secondary' : 'btn-primary');
+        action.disabled = isForbidden;
+        action.textContent = isForbidden ? 'Tidak dapat dikunjungi' : 'Pilih WBP';
+        if (!isForbidden) {
+          action.addEventListener('click', function () {
+            selectWbp(item);
+          });
+        }
+
+        row.appendChild(body);
+        row.appendChild(action);
+        wbpSearchResults.appendChild(row);
+      });
+    }
+
+    function selectWbp(wbp) {
+      selectedWbp = wbp;
+      document.getElementById('selectedWbpId').value = wbp.wbpId;
+      document.getElementById('selectedWbpName').textContent = wbp.nama;
+      document.getElementById('selectedWbpTypeBadge').textContent = wbp.jenisWbp;
+
+      var visitBadge = document.getElementById('selectedWbpVisitingBadge');
+      visitBadge.textContent = wbp.bolehDikunjungi;
+      visitBadge.className = 'badge ' + (wbp.bolehDikunjungi === 'Hanya Titipan Barang' ? 'badge-soft-warning' : 'badge-soft-success');
+
+      document.getElementById('selectedWbpMeta').textContent =
+        'Tgl lahir: ' + wbp.tanggalLahir + ' | Usia: ' + wbp.usia + ' tahun | Masuk: ' + wbp.tanggalMasuk;
+
+      wbpSearchSection.classList.add('d-none');
+      selectedWbpCard.classList.remove('d-none');
+      wbpSearchResults.classList.add('d-none');
+
+      document.getElementById('summaryWbp').textContent = wbp.nama;
+      document.getElementById('summaryDate').textContent = 'Belum dipilih';
+      loadAvailableDates(wbp.wbpId);
+    }
+
+    btnSearchWbp.addEventListener('click', performWbpSearch);
+
+    wbpQueryInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        performWbpSearch();
+      }
+    });
+
+    wbpQueryInput.addEventListener('input', function () {
+      window.clearTimeout(searchTimer);
+      var query = wbpQueryInput.value.trim();
+      if (query.length < 2) return;
+      searchTimer = window.setTimeout(performWbpSearch, 500);
+    });
+
+    btnChangeWbp.addEventListener('click', function () {
+      selectedWbp = null;
+      document.getElementById('selectedWbpId').value = '';
+      wbpSearchSection.classList.remove('d-none');
+      selectedWbpCard.classList.add('d-none');
+      document.getElementById('availableDatesContainer').innerHTML = '';
+      document.getElementById('summaryWbp').textContent = 'Belum dipilih';
+      document.getElementById('summaryDate').textContent = 'Belum dipilih';
+      var notice = document.getElementById('dateNotice');
+      notice.className = 'alert alert-info mb-2';
+      notice.innerHTML = '<i class="bi bi-info-circle-fill" aria-hidden="true"></i><span>Silakan pilih WBP terlebih dahulu untuk melihat jadwal tanggal yang tersedia.</span>';
+      wbpQueryInput.focus();
+    });
+
+    function loadAvailableDates(wbpId) {
+      var container = document.getElementById('availableDatesContainer');
+      var notice = document.getElementById('dateNotice');
+      notice.className = 'alert alert-info mb-2';
+      notice.innerHTML = '<i class="bi bi-hourglass-split" aria-hidden="true"></i><span>Memuat jadwal yang sesuai dengan WBP...</span>';
+      container.innerHTML = '';
+
+      fetch('/api/schedule/available-dates?wbpId=' + encodeURIComponent(wbpId))
+        .then(function (response) {
+          if (!response.ok) throw new Error('request-failed');
+          return response.json();
+        })
+        .then(function (dates) {
+          notice.className = 'alert alert-info mb-2';
+          notice.innerHTML = '<i class="bi bi-info-circle-fill" aria-hidden="true"></i><span>Pilih salah satu tanggal kunjungan di bawah ini.</span>';
+
+          if (!dates || dates.length === 0) {
+            notice.className = 'alert alert-warning mb-2';
+            notice.innerHTML = '<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><span>Tidak ada tanggal kunjungan yang tersedia untuk WBP ini.</span>';
+            return;
+          }
+
+          var firstAvailable = true;
+          dates.forEach(function (date) {
+            var label = document.createElement('label');
+            label.className = 'choice-card' + (date.available ? '' : ' is-disabled');
+
+            var left = document.createElement('div');
+            left.className = 'd-flex align-items-center gap-2';
+
+            var radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'visitDate';
+            radio.value = date.dateStr;
+            radio.className = 'form-check-input';
+            radio.required = true;
+            radio.disabled = !date.available;
+            if (date.available && firstAvailable) {
+              radio.checked = true;
+              firstAvailable = false;
+              label.classList.add('is-selected');
+            }
+            radio.addEventListener('change', function () {
+              container.querySelectorAll('.choice-card').forEach(function (card) {
+                card.classList.remove('is-selected');
+              });
+              label.classList.add('is-selected');
+              document.getElementById('summaryDate').textContent = date.formattedDate;
+            });
+
+            var textWrap = document.createElement('div');
+            var dateText = document.createElement('strong');
+            dateText.textContent = date.formattedDate;
+            textWrap.appendChild(dateText);
+
+            if (date.isToday) {
+              var todayBadge = document.createElement('span');
+              todayBadge.className = 'badge badge-soft-warning ms-2';
+              todayBadge.textContent = 'Hari ini (H+0)';
+              textWrap.appendChild(todayBadge);
+            }
+            if (!date.available && date.reason) {
+              var reason = document.createElement('div');
+              reason.className = 'small text-danger';
+              reason.textContent = date.reason;
+              textWrap.appendChild(reason);
+            }
+
+            left.appendChild(radio);
+            left.appendChild(textWrap);
+
+            var status = document.createElement('span');
+            status.className = 'badge ' + (date.available ? 'badge-soft-success' : 'badge-soft-neutral');
+            status.textContent = date.available ? 'Tersedia' : 'Tidak tersedia';
+
+            label.appendChild(left);
+            label.appendChild(status);
+            container.appendChild(label);
+
+            if (radio.checked) {
+              document.getElementById('summaryDate').textContent = date.formattedDate;
+            }
+          });
+        })
+        .catch(function () {
+          notice.className = 'alert alert-danger mb-2';
+          notice.innerHTML = '<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i><span>Gagal memuat jadwal tanggal. Silakan coba lagi.</span>';
+        });
+    }
+
+    // Auto-fill data dari riwayat NIK
+    var primaryNikInput = document.getElementById('primaryNik');
+    var nikStatusEl = document.getElementById('nikLookupStatus');
+
+    primaryNikInput.addEventListener('blur', function () {
+      var nik = primaryNikInput.value.trim();
+      if (!/^[0-9]{16}$/.test(nik)) {
+        nikStatusEl.textContent = '';
+        nikStatusEl.className = 'form-text';
+        return;
+      }
+
+      nikStatusEl.textContent = 'Memeriksa riwayat kunjungan NIK...';
+      nikStatusEl.className = 'form-text text-muted';
+
+      fetch('/api/nik/lookup?nik=' + encodeURIComponent(nik))
+        .then(function (response) { return response.json(); })
+        .then(function (history) {
+          if (history) {
+            nikStatusEl.textContent = 'Data ditemukan dari kunjungan sebelumnya (' + history.totalVisits + 'x). Nama, jenis kelamin, dan relasi diisi otomatis. Alamat dan nomor HP wajib diisi ulang.';
+            nikStatusEl.className = 'form-text text-success';
+            if (!document.getElementById('primaryNama').value) document.getElementById('primaryNama').value = history.nama;
+            if (!document.getElementById('primaryJenisKelamin').value) document.getElementById('primaryJenisKelamin').value = history.jenisKelamin;
+            if (!document.getElementById('primaryRelasi').value) document.getElementById('primaryRelasi').value = history.lastRelasi;
+          } else {
+            nikStatusEl.textContent = 'Pendaftar baru belum tercatat pada riwayat kunjungan.';
+            nikStatusEl.className = 'form-text text-muted';
+          }
+        })
+        .catch(function () {
+          nikStatusEl.textContent = '';
+        });
+    });
+
+    function getFollowers() {
+      return Array.prototype.slice.call(followersContainer.querySelectorAll('.follower-item'));
+    }
+
+    function updateQuotaAlert() {
+      var children = parseInt(childrenSelect.value, 10) || 0;
+      var followers = getFollowers();
+      var followerCount = followers.length;
+      var totalAdults = 1 + followerCount;
+      var totalVisitors = totalAdults + children;
+      var isValid = true;
+
+      document.getElementById('followerCountText').textContent = followerCount + ' pengikut dewasa';
+      document.getElementById('childCountText').textContent = children + ' anak';
+      document.getElementById('totalVisitorText').textContent = totalVisitors;
+      document.getElementById('summaryVisitors').textContent = totalVisitors + ' orang';
+
+      var alertBox = document.getElementById('quotaCounterAlert');
+
+      if (children === 0 && totalAdults > 4) {
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerHTML = '<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i><span><strong>Batas melebihi:</strong> maksimal 4 orang dewasa jika tidak membawa anak.</span>';
+        isValid = false;
+      } else if (children > 0 && totalAdults > 3) {
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerHTML = '<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i><span><strong>Batas melebihi:</strong> jika membawa ' + children + ' anak, maksimal dewasa adalah 3 orang.</span>';
+        isValid = false;
+      } else {
+        alertBox.className = 'alert alert-info';
+        alertBox.innerHTML = '<i class="bi bi-people-fill" aria-hidden="true"></i><span><strong>Status kuota:</strong> 1 pendaftar utama, ' + followerCount + ' pengikut dewasa, ' + children + ' anak (total: ' + totalVisitors + ' pengunjung). Status: <strong>sesuai kuota</strong>.</span>';
+      }
+
+      btnSubmitRegistration.disabled = !isValid;
+      return isValid;
+    }
+
+    childrenSelect.addEventListener('change', updateQuotaAlert);
+
+    function addFollower() {
+      var children = parseInt(childrenSelect.value, 10) || 0;
+      var maxFollowers = children > 0 ? 2 : 3;
+      var followerCount = getFollowers().length;
+
+      if (followerCount >= maxFollowers) {
+        window.sikunjungUI && window.sikunjungUI.toast('Batas maksimal pengikut dewasa untuk kombinasi ini adalah ' + maxFollowers + ' orang.', 'warning');
+        return;
+      }
+
+      var idx = nextFollowerIndex++;
+      var item = document.createElement('div');
+      item.className = 'p-3 rounded border follower-item';
+      item.style.backgroundColor = 'var(--surface-2)';
+      item.style.borderColor = 'var(--border)';
+      item.dataset.followerIndex = String(idx);
+
+      var header = document.createElement('div');
+      header.className = 'd-flex justify-content-between align-items-center mb-2';
+      var title = document.createElement('strong');
+      title.className = 'small text-primary follower-label';
+      title.textContent = 'Pengikut dewasa #' + (followerCount + 1);
+      var remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn btn-sm btn-outline-secondary text-danger';
+      remove.innerHTML = '<i class="bi bi-trash" aria-hidden="true"></i> Hapus';
+      header.appendChild(title);
+      header.appendChild(remove);
+
+      var fields = document.createElement('div');
+      fields.className = 'row g-2';
+      fields.innerHTML =
+        '<div class="col-12 col-md-6">' +
+          '<label class="form-label" for="followerNik' + idx + '">NIK pengikut (16 digit) <span class="text-danger">*</span></label>' +
+          '<input type="text" id="followerNik' + idx + '" name="followers[' + idx + '][nik]" class="form-control form-control-sm" maxlength="16" pattern="[0-9]{16}" inputmode="numeric" placeholder="NIK pengikut" required>' +
+        '</div>' +
+        '<div class="col-12 col-md-6">' +
+          '<label class="form-label" for="followerNama' + idx + '">Nama lengkap sesuai e-KTP <span class="text-danger">*</span></label>' +
+          '<input type="text" id="followerNama' + idx + '" name="followers[' + idx + '][nama]" class="form-control form-control-sm" placeholder="Nama sesuai e-KTP" required>' +
+        '</div>' +
+        '<div class="col-6 col-md-4">' +
+          '<label class="form-label" for="followerJk' + idx + '">Jenis kelamin</label>' +
+          '<select id="followerJk' + idx + '" name="followers[' + idx + '][jenisKelamin]" class="form-select form-select-sm" required>' +
+            '<option value="Laki-laki">Laki-laki</option>' +
+            '<option value="Perempuan">Perempuan</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="col-6 col-md-4">' +
+          '<label class="form-label" for="followerRelasi' + idx + '">Hubungan</label>' +
+          '<input type="text" id="followerRelasi' + idx + '" name="followers[' + idx + '][relasi]" class="form-control form-control-sm" placeholder="Contoh: Anak" required>' +
+        '</div>' +
+        '<div class="col-12 col-md-4">' +
+          '<label class="form-label" for="followerAlamat' + idx + '">Alamat e-KTP</label>' +
+          '<input type="text" id="followerAlamat' + idx + '" name="followers[' + idx + '][alamat]" class="form-control form-control-sm" placeholder="Alamat domisili" required>' +
+        '</div>';
+
+      item.appendChild(header);
+      item.appendChild(fields);
+
+      remove.addEventListener('click', function () {
+        item.remove();
+        getFollowers().forEach(function (row, index) {
+          var label = row.querySelector('.follower-label');
+          if (label) label.textContent = 'Pengikut dewasa #' + (index + 1);
+        });
+        updateQuotaAlert();
+      });
+
+      followersContainer.appendChild(item);
+      updateQuotaAlert();
+      var firstInput = item.querySelector('input');
+      if (firstInput) firstInput.focus();
+    }
+
+    var btnAddFollower = document.getElementById('btnAddFollower');
+    if (btnAddFollower) btnAddFollower.addEventListener('click', addFollower);
+
+    // Ringkasan barang titipan
+    function updateLuggageSummary() {
+      var total = 0;
+      document.querySelectorAll('.luggage-qty').forEach(function (input) {
+        var value = parseInt(input.value, 10);
+        if (!isNaN(value) && value > 0) total += value;
+      });
+      document.getElementById('summaryLuggage').textContent = total > 0 ? total + ' item' : 'Tidak ada';
+    }
+    document.querySelectorAll('.luggage-qty').forEach(function (input) {
+      input.addEventListener('input', updateLuggageSummary);
+    });
+
+    // Stepper: klik dan sinkronisasi saat scroll
+    var stepLinks = Array.prototype.slice.call(document.querySelectorAll('[data-step-link]'));
+    var stepSections = Array.prototype.slice.call(document.querySelectorAll('.form-step'));
+
+    function setActiveStep(step) {
+      stepLinks.forEach(function (link) {
+        var isActive = link.getAttribute('data-step-link') === String(step);
+        link.classList.toggle('active', isActive);
+        if (isActive) link.setAttribute('aria-current', 'step');
+        else link.removeAttribute('aria-current');
+      });
+      stepSections.forEach(function (section) {
+        var sectionStep = Number(section.getAttribute('data-step'));
+        section.classList.toggle('completed', sectionStep < step);
+      });
+    }
+
+    stepLinks.forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        var target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+        setActiveStep(Number(link.getAttribute('data-step-link')));
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    var scrollTicking = false;
+    window.addEventListener('scroll', function () {
+      if (scrollTicking) return;
+      scrollTicking = true;
+      window.requestAnimationFrame(function () {
+        var offset = 140;
+        var current = 1;
+        stepSections.forEach(function (section) {
+          if (section.getBoundingClientRect().top <= offset) {
+            current = Number(section.getAttribute('data-step'));
+          }
+        });
+        setActiveStep(current);
+        scrollTicking = false;
+      });
+    }, { passive: true });
+
+    // Ringkasan dipindahkan ke langkah konfirmasi pada layar kecil.
+    var summaryAside = document.querySelector('.registration-summary');
+    var summaryDesktopParent = summaryAside ? summaryAside.parentNode : null;
+    var summaryDesktopNext = summaryAside ? summaryAside.nextSibling : null;
+    var confirmBody = document.querySelector('#step-confirm .form-section-body');
+    var summaryMedia = window.matchMedia('(max-width: 991.98px)');
+
+    function syncSummaryPlacement() {
+      if (!summaryAside || !confirmBody || !summaryDesktopParent) return;
+      if (summaryMedia.matches) {
+        if (summaryAside.parentNode !== confirmBody) {
+          confirmBody.insertBefore(summaryAside, confirmBody.firstElementChild);
+        }
+      } else if (summaryAside.parentNode !== summaryDesktopParent) {
+        summaryDesktopParent.insertBefore(summaryAside, summaryDesktopNext);
+      }
+    }
+
+    if (summaryMedia.addEventListener) {
+      summaryMedia.addEventListener('change', syncSummaryPlacement);
+    } else {
+      summaryMedia.addListener(syncSummaryPlacement);
+    }
+    syncSummaryPlacement();
+
+    updateQuotaAlert();
+    updateLuggageSummary();
+    setActiveStep(1);
+  })();
+</script>
+
+<%- include('../partials/footer') %>

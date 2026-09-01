@@ -1,0 +1,223 @@
+<%- include('./partials/adminHeader', { title: 'Dashboard Petugas', active: 'dashboard' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Ringkasan operasional</span>
+    <h2 class="page-title">Dashboard Operasional Lapas</h2>
+    <p class="page-subtitle">Pantau pendaftaran, antrean kedatangan, dan penggunaan kuota harian.</p>
+  </div>
+
+  <form action="/admin/dashboard" method="GET" class="d-flex align-items-end gap-2">
+    <div>
+      <label class="form-label mb-1" for="dashboardDate">Tanggal pantauan</label>
+      <input type="date" id="dashboardDate" name="date" class="form-control form-control-sm" value="<%= selectedDate %>" data-auto-submit>
+    </div>
+    <% if (selectedDate !== todayStr) { %>
+      <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-calendar-check" aria-hidden="true"></i> Hari ini
+      </a>
+    <% } %>
+  </form>
+</div>
+
+<div class="row g-3 mb-4 dashboard-summary">
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-primary stat-plain">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
+        <p class="stat-label">Total pendaftaran</p>
+      </div>
+      <p class="stat-value"><%= totalRegistrations %></p>
+      <p class="stat-help">Pada <%= selectedDate %></p>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-warning stat-plain">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+        <p class="stat-label">Menunggu verifikasi</p>
+      </div>
+      <p class="stat-value"><%= waitingVerification %></p>
+      <p class="stat-help">Belum hadir di loket</p>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-info stat-plain">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-person-check" aria-hidden="true"></i></span>
+        <p class="stat-label">Hadir / dipanggil</p>
+      </div>
+      <p class="stat-value"><%= verifiedCount + callingCount %></p>
+      <p class="stat-help">Terbit nomor antrean</p>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-success stat-plain">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-flag" aria-hidden="true"></i></span>
+        <p class="stat-label">Kunjungan selesai</p>
+      </div>
+      <p class="stat-value"><%= completedCount %></p>
+      <p class="stat-help">Kunjungan usai</p>
+    </div>
+  </div>
+</div>
+
+<section class="surface-card p-4 mb-4" aria-labelledby="quota-title">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <span class="icon-square primary"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+    <div>
+      <h2 class="h6 fw-bold mb-0" id="quota-title">Penggunaan kuota harian</h2>
+      <p class="text-muted small mb-0">Batas kapasitas layanan tanggal <%= selectedDate %>.</p>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <% var regPercent = Math.min(100, (capacityUsed.registrations / settings.maxDailyRegistrations) * 100); %>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">Kuota pendaftaran</span>
+        <strong><%= capacityUsed.registrations %> / <%= settings.maxDailyRegistrations %> <span class="text-muted fw-normal">(sisa <%= remainingRegQuota %>)</span></strong>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Kuota pendaftaran" aria-valuenow="<%= capacityUsed.registrations %>" aria-valuemin="0" aria-valuemax="<%= settings.maxDailyRegistrations %>">
+        <div class="progress-bar bg-primary" style="width: <%= regPercent %>%;"></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <% var visitorPercent = Math.min(100, (capacityUsed.visitors / settings.maxDailyVisitors) * 100); %>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">Kuota pengunjung</span>
+        <strong><%= capacityUsed.visitors %> / <%= settings.maxDailyVisitors %> <span class="text-muted fw-normal">(sisa <%= remainingVisitorQuota %>)</span></strong>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Kuota pengunjung" aria-valuenow="<%= capacityUsed.visitors %>" aria-valuemin="0" aria-valuemax="<%= settings.maxDailyVisitors %>">
+        <div class="progress-bar bg-info" style="width: <%= visitorPercent %>%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-muted small mt-3 mb-0">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    Kuota diperbarui otomatis setiap ada pendaftaran baru atau pembatalan.
+  </p>
+</section>
+
+<section class="surface-card table-card mb-4" aria-labelledby="upcoming-title">
+  <div class="p-4 pb-3">
+    <h2 class="h6 fw-bold mb-0" id="upcoming-title">Pendaftaran mendatang (H+1 s/d H+3)</h2>
+    <p class="text-muted small mb-0">
+      Booking mendatang: <%= registrationOverview.upcomingTotalRegistrations %> pendaftaran &middot;
+      <%= registrationOverview.upcomingWaitingVerification %> menunggu verifikasi &middot;
+      Pending semua tanggal: <strong><%= registrationOverview.totalPendingAllDates %></strong>.
+    </p>
+  </div>
+
+  <div class="table-responsive table-stack-wrap border-top">
+    <table class="table table-stack table-hover table-sm align-middle mb-0">
+      <caption class="visually-hidden">Ringkasan pendaftaran H+1 sampai H+3</caption>
+      <thead>
+        <tr>
+          <th scope="col">Tanggal kunjungan</th>
+          <th scope="col">Ringkasan</th>
+          <th scope="col" class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% registrationOverview.upcoming.forEach(function(day) { %>
+          <tr>
+            <td data-label="Tanggal kunjungan">
+              <div>
+                <strong><%= day.formattedDate %></strong>
+                <span class="d-block small text-muted"><%= day.dateStr %></span>
+              </div>
+            </td>
+            <td data-label="Ringkasan">
+              <div>
+                <span class="d-block"><%= day.totalRegistrations %> pendaftar</span>
+                <% if (day.waitingVerification > 0) { %>
+                  <span class="badge badge-soft-warning mt-1"><%= day.waitingVerification %> menunggu</span>
+                <% } else { %>
+                  <span class="badge badge-soft-neutral mt-1">Tidak ada pending</span>
+                <% } %>
+              </div>
+            </td>
+            <td class="text-end table-actions-cell" data-label="Aksi">
+              <a href="/admin/pendaftaran?date=<%= day.dateStr %>" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-list-ul" aria-hidden="true"></i> Lihat daftar
+              </a>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="surface-card table-card" aria-labelledby="queue-preview-title">
+  <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h2 class="h6 fw-bold mb-0" id="queue-preview-title">Antrean terbit (<%= dailyQueue.entries.length %> antrean)</h2>
+    </div>
+    <a href="/admin/antrean?date=<%= selectedDate %>" class="btn btn-sm btn-outline-secondary">
+      Kelola lengkap <i class="bi bi-arrow-right" aria-hidden="true"></i>
+    </a>
+  </div>
+
+  <% if (dailyQueue.entries.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-inbox" aria-hidden="true"></i></span>
+      <p class="empty-title">Belum ada antrean terbit</p>
+      <p class="empty-text">Antrean akan muncul setelah pengunjung diverifikasi hadir di loket.</p>
+      <a href="/admin/verifikasi" class="btn btn-sm btn-primary">
+        <i class="bi bi-upc-scan" aria-hidden="true"></i> Buka loket verifikasi
+      </a>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover table-sm align-middle">
+        <caption class="visually-hidden">Pratinjau antrean kunjungan tanggal <%= selectedDate %></caption>
+        <thead>
+          <tr>
+            <th scope="col">Antrean</th>
+            <th scope="col">Nama WBP</th>
+            <th scope="col">Pendaftar</th>
+            <th scope="col">Waktu</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% dailyQueue.entries.forEach(function(e) { %>
+            <tr>
+              <td data-label="Antrean">
+                <div>
+                  <strong class="text-primary"><%= e.queueNumber %></strong>
+                  <span class="d-block small text-muted"><code><%= e.regNumber %></code></span>
+                </div>
+              </td>
+              <td data-label="Nama WBP"><%= e.wbpName %></td>
+              <td data-label="Pendaftar">
+                <div>
+                  <%= e.primaryName %>
+                  <span class="d-block small text-muted"><%= e.totalVisitors %> pengunjung</span>
+                </div>
+              </td>
+              <td data-label="Waktu"><%= e.verifiedAt.slice(11, 16) %> WIB</td>
+              <td data-label="Status"><span class="badge badge-soft-neutral"><%= e.status %></span></td>
+              <td class="text-end table-actions-cell" data-label="Aksi">
+                <a href="/admin/tiket/<%= e.queueNumber %>?date=<%= selectedDate %>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-printer" aria-hidden="true"></i> Tiket A6
+                </a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

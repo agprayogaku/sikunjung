@@ -1,0 +1,150 @@
+<%- include('./partials/adminHeader', { title: 'Kelola Antrean Kunjungan', active: 'queue' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Operasional ruang besuk</span>
+    <h2 class="page-title">Pengelolaan Antrean Kunjungan</h2>
+    <p class="page-subtitle">Atur alur pemanggilan, pelaksanaan, dan penyelesaian kunjungan.</p>
+  </div>
+
+  <form action="/admin/antrean" method="GET" class="d-flex align-items-end gap-2">
+    <div>
+      <label class="form-label mb-1" for="queueDate">Tanggal antrean</label>
+      <input type="date" id="queueDate" name="date" class="form-control form-control-sm" value="<%= selectedDate %>" data-auto-submit>
+    </div>
+    <% if (selectedDate !== todayStr) { %>
+      <a href="/admin/antrean" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-calendar-check" aria-hidden="true"></i> Hari ini
+      </a>
+    <% } %>
+  </form>
+</div>
+
+<%
+  var queueCounts = { waiting: 0, called: 0, visiting: 0, done: 0 };
+  dailyQueue.entries.forEach(function (entry) {
+    if (entry.status === 'MENUNGGU DIPANGGIL') queueCounts.waiting++;
+    else if (entry.status === 'DIPANGGIL') queueCounts.called++;
+    else if (entry.status === 'SEDANG BERKUNJUNG') queueCounts.visiting++;
+    else if (entry.status === 'SELESAI') queueCounts.done++;
+  });
+%>
+
+<section class="surface-card table-card" aria-labelledby="queue-list-title">
+  <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <h3 class="h6 fw-bold mb-0" id="queue-list-title"><%= dailyQueue.entries.length %> antrean terbit</h3>
+    <div class="d-flex flex-wrap gap-1">
+      <span class="badge badge-soft-warning">Menunggu: <%= queueCounts.waiting %></span>
+      <span class="badge badge-soft-primary">Dipanggil: <%= queueCounts.called %></span>
+      <span class="badge badge-soft-info">Berkunjung: <%= queueCounts.visiting %></span>
+      <span class="badge badge-soft-success">Selesai: <%= queueCounts.done %></span>
+    </div>
+  </div>
+
+  <% if (dailyQueue.entries.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-inbox" aria-hidden="true"></i></span>
+      <p class="empty-title">Belum ada antrean untuk tanggal ini</p>
+      <p class="empty-text">Antrean diterbitkan setelah pengunjung diverifikasi hadir di loket.</p>
+      <a href="/admin/verifikasi" class="btn btn-sm btn-primary">
+        <i class="bi bi-upc-scan" aria-hidden="true"></i> Buka loket verifikasi
+      </a>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover align-middle">
+        <caption class="visually-hidden">Daftar antrean kunjungan tanggal <%= selectedDate %></caption>
+        <thead>
+          <tr>
+            <th scope="col">Antrean / Status</th>
+            <th scope="col">Nama WBP</th>
+            <th scope="col">Pengunjung</th>
+            <th scope="col">Waktu terbit</th>
+            <th scope="col" class="text-end" style="min-width: 180px;">Aksi petugas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% dailyQueue.entries.forEach(function(e) { %>
+            <tr>
+              <td data-label="Antrean / Status">
+                <div>
+                  <strong class="text-primary"><%= e.queueNumber %></strong>
+                  <span class="d-block small text-muted"><code><%= e.regNumber %></code></span>
+                  <% if (e.status === 'MENUNGGU DIPANGGIL') { %>
+                    <span class="badge badge-soft-warning text-wrap mt-1"><%= e.status %></span>
+                  <% } else if (e.status === 'DIPANGGIL') { %>
+                    <span class="badge badge-soft-primary text-wrap mt-1"><%= e.status %></span>
+                  <% } else if (e.status === 'SEDANG BERKUNJUNG') { %>
+                    <span class="badge badge-soft-info text-wrap mt-1"><%= e.status %></span>
+                  <% } else if (e.status === 'SELESAI') { %>
+                    <span class="badge badge-soft-success text-wrap mt-1"><%= e.status %></span>
+                  <% } else { %>
+                    <span class="badge badge-soft-neutral text-wrap mt-1"><%= e.status %></span>
+                  <% } %>
+                </div>
+              </td>
+              <td data-label="Nama WBP"><strong><%= e.wbpName %></strong></td>
+              <td data-label="Pengunjung">
+                <div>
+                  <%= e.primaryName %>
+                  <span class="d-block small text-muted"><%= e.totalVisitors %> orang</span>
+                </div>
+              </td>
+              <td data-label="Waktu terbit"><%= e.verifiedAt.slice(11, 16) %> WIB</td>
+              <td class="table-actions-cell" data-label="Aksi petugas">
+                <div class="table-actions justify-content-end">
+                  <% if (e.status === 'MENUNGGU DIPANGGIL') { %>
+                    <form action="/admin/antrean/status" method="POST" class="d-inline">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="date" value="<%= selectedDate %>">
+                      <input type="hidden" name="queueNumber" value="<%= e.queueNumber %>">
+                      <input type="hidden" name="status" value="DIPANGGIL">
+                      <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-megaphone" aria-hidden="true"></i> Panggil
+                      </button>
+                    </form>
+                  <% } else if (e.status === 'DIPANGGIL') { %>
+                    <form action="/admin/antrean/status" method="POST" class="d-inline">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="date" value="<%= selectedDate %>">
+                      <input type="hidden" name="queueNumber" value="<%= e.queueNumber %>">
+                      <input type="hidden" name="status" value="SEDANG BERKUNJUNG">
+                      <button type="submit" class="btn btn-sm btn-soft-primary">
+                        <i class="bi bi-door-open" aria-hidden="true"></i> Masuk
+                      </button>
+                    </form>
+                    <form action="/admin/antrean/status" method="POST" class="d-inline" data-confirm="Tandai pengunjung ini sebagai dilewati? Pastikan pengunjung benar-benar tidak hadir saat dipanggil." data-confirm-title="Lewati antrean" data-confirm-label="Ya, lewati" data-confirm-variant="danger">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="date" value="<%= selectedDate %>">
+                      <input type="hidden" name="queueNumber" value="<%= e.queueNumber %>">
+                      <input type="hidden" name="status" value="DILEWATI">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-skip-forward" aria-hidden="true"></i> Lewati
+                      </button>
+                    </form>
+                  <% } else if (e.status === 'SEDANG BERKUNJUNG') { %>
+                    <form action="/admin/antrean/status" method="POST" class="d-inline">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="date" value="<%= selectedDate %>">
+                      <input type="hidden" name="queueNumber" value="<%= e.queueNumber %>">
+                      <input type="hidden" name="status" value="SELESAI">
+                      <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-flag" aria-hidden="true"></i> Selesai
+                      </button>
+                    </form>
+                  <% } %>
+
+                  <a href="/admin/tiket/<%= e.queueNumber %>?date=<%= selectedDate %>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-printer" aria-hidden="true"></i> Tiket A6
+                  </a>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

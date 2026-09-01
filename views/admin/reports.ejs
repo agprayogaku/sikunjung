@@ -1,0 +1,145 @@
+<%- include('./partials/adminHeader', { title: 'Laporan Rekap Kunjungan', active: 'reports' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Pelaporan</span>
+    <h2 class="page-title">Laporan Rekapitulasi Kunjungan</h2>
+    <p class="page-subtitle">Rekap pendaftaran, kedatangan fisik, dan ekspor dokumen resmi CSV.</p>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-end gap-2">
+    <form action="/admin/laporan" method="GET">
+      <label class="form-label mb-1" for="reportDate">Tanggal laporan</label>
+      <input type="date" id="reportDate" name="date" class="form-control form-control-sm" value="<%= selectedDate %>" data-auto-submit>
+    </form>
+    <a href="/admin/laporan/csv?date=<%= selectedDate %>" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-filetype-csv" aria-hidden="true"></i> Unduh CSV Rekap
+    </a>
+  </div>
+</div>
+
+<%
+  var totalVisitors = records.reduce(function (sum, r) { return sum + (r.totalVisitors || 0); }, 0);
+  var totalChildren = records.reduce(function (sum, r) { return sum + (r.childrenCount || 0); }, 0);
+  var queueIssued = records.filter(function (r) { return r.queueInfo && r.queueInfo.queueNumber; }).length;
+%>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-primary">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
+        <p class="stat-label">Total pendaftaran</p>
+      </div>
+      <p class="stat-value"><%= records.length %></p>
+      <p class="stat-help">Tanggal <%= selectedDate %></p>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-info">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+        <p class="stat-label">Total pengunjung</p>
+      </div>
+      <p class="stat-value"><%= totalVisitors %></p>
+      <p class="stat-help">Termasuk anak dan pendaftar</p>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-warning">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-person-hearts" aria-hidden="true"></i></span>
+        <p class="stat-label">Pengunjung anak</p>
+      </div>
+      <p class="stat-value"><%= totalChildren %></p>
+      <p class="stat-help">Usia 0–14 tahun</p>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="surface-card stat-card stat-success">
+      <div class="stat-top">
+        <span class="stat-icon"><i class="bi bi-megaphone" aria-hidden="true"></i></span>
+        <p class="stat-label">Antrean terbit</p>
+      </div>
+      <p class="stat-value"><%= queueIssued %></p>
+      <p class="stat-help">Sudah diverifikasi hadir</p>
+    </div>
+  </div>
+</div>
+
+<section class="surface-card table-card" aria-labelledby="report-table-title">
+  <div class="p-4 pb-3">
+    <h3 class="h6 fw-bold mb-0" id="report-table-title">Rincian pendaftaran kunjungan</h3>
+  </div>
+
+  <% if (records.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-inbox" aria-hidden="true"></i></span>
+      <p class="empty-title">Tidak ada data pendaftaran</p>
+      <p class="empty-text">Belum ada pendaftaran kunjungan pada tanggal <%= selectedDate %>.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover table-sm align-middle">
+        <caption class="visually-hidden">Rekap pendaftaran kunjungan tanggal <%= selectedDate %></caption>
+        <thead>
+          <tr>
+            <th scope="col">Registrasi / Status</th>
+            <th scope="col">WBP / Kamar Sel</th>
+            <th scope="col">Pendaftar / Kontak</th>
+            <th scope="col">Pengunjung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% records.forEach(function(r) { %>
+            <tr>
+              <td data-label="Registrasi / Status">
+                <div>
+                  <code><%= r.registrationNumber %></code>
+                  <% if (r.status === 'SELESAI') { %>
+                    <span class="badge badge-soft-success text-wrap mt-1"><%= r.status %></span>
+                  <% } else if (r.status === 'DIBATALKAN' || r.status === 'DITOLAK') { %>
+                    <span class="badge badge-soft-danger text-wrap mt-1"><%= r.status %></span>
+                  <% } else if (r.status === 'MENUNGGU VERIFIKASI') { %>
+                    <span class="badge badge-soft-warning text-wrap mt-1"><%= r.status %></span>
+                  <% } else { %>
+                    <span class="badge badge-soft-primary text-wrap mt-1"><%= r.status %></span>
+                  <% } %>
+                  <% if (r.queueInfo && r.queueInfo.queueNumber) { %>
+                    <span class="badge badge-outline mt-1">Antrean <%= r.queueInfo.queueNumber %></span>
+                  <% } else { %>
+                    <span class="d-block small text-muted mt-1">Belum antrean</span>
+                  <% } %>
+                </div>
+              </td>
+              <td data-label="WBP / Kamar Sel">
+                <div>
+                  <strong class="d-block"><%= r.wbp.nama %></strong>
+                  <span class="small text-muted" title="<%= r.wbp.lokasiSel || '-' %>"><%= formatCellLocation(r.wbp.lokasiSel) %></span>
+                </div>
+              </td>
+              <td data-label="Pendaftar / Kontak">
+                <div>
+                  <span class="d-block"><%= r.primaryVisitor.nama %></span>
+                  <span class="d-block small text-muted">NIK <code><%= r.primaryVisitor.nik %></code></span>
+                  <span class="d-block small text-muted">Telp. <%= r.primaryVisitor.telepon %></span>
+                </div>
+              </td>
+              <td data-label="Pengunjung">
+                <div>
+                  <strong class="d-block"><%= r.totalVisitors %> orang</strong>
+                  <span class="d-block small text-muted">Dewasa <%= r.totalAdults %> &middot; Anak <%= r.childrenCount %></span>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

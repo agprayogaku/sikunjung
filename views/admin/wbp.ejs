@@ -1,0 +1,157 @@
+<%- include('./partials/adminHeader', { title: 'Kelola Data WBP', active: 'wbp' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Basis data</span>
+    <h2 class="page-title">Data Warga Binaan (WBP)</h2>
+    <p class="page-subtitle">Kelola status kunjungan WBP dan perbarui basis data melalui unggah berkas JSON.</p>
+  </div>
+</div>
+
+<% if (typeof success !== 'undefined' && success === 'uploaded') { %>
+  <div class="alert alert-success" role="alert">
+    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+    <span>
+      Basis data WBP berhasil diperbarui. Sebanyak <strong><%= count %></strong> data WBP telah dimuat
+      dan backup data lama dibuat otomatis.
+    </span>
+  </div>
+<% } %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<section class="surface-card mb-4" aria-labelledby="upload-wbp-title">
+  <button class="collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#wbpUploadPanel"
+          aria-expanded="<%= typeof error !== 'undefined' && error ? 'true' : 'false' %>" aria-controls="wbpUploadPanel">
+    <span class="icon-square primary"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i></span>
+    <span class="flex-grow-1">
+      <span class="d-block fw-bold" id="upload-wbp-title">Unggah / Sinkronisasi Data WBP</span>
+      <span class="d-block text-muted small">Format berkas JSON sesuai ekspor data WBP Lapas Purwakarta.</span>
+    </span>
+    <i class="bi bi-chevron-down collapse-chevron" aria-hidden="true"></i>
+  </button>
+
+  <div class="collapse <%= typeof error !== 'undefined' && error ? 'show' : '' %>" id="wbpUploadPanel">
+    <div class="p-4 border-top">
+      <p class="text-muted small mb-3">
+        Sistem akan memvalidasi struktur data dan mencadangkan berkas lama ke folder backup
+        ber-timestamp sebelum mengganti data aktif.
+      </p>
+
+      <form action="/admin/wbp/upload" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end"
+            data-confirm="Perbarui data WBP sekarang? Data lama akan otomatis dicadangkan terlebih dahulu."
+            data-confirm-title="Perbarui data WBP"
+            data-confirm-label="Ya, perbarui data">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="col-12 col-md-7">
+          <label class="form-label" for="wbpFile">Berkas JSON data WBP</label>
+          <div class="file-control">
+            <input type="file" id="wbpFile" name="wbpFile" accept=".json,application/json" class="file-control-input" aria-describedby="wbpFileHelp" required>
+            <span class="btn btn-outline-secondary file-control-button" aria-hidden="true">
+              <i class="bi bi-folder2-open" aria-hidden="true"></i> Pilih Berkas
+            </span>
+            <span class="file-control-name" data-file-name-for="wbpFile" aria-live="polite">Belum ada berkas dipilih</span>
+          </div>
+          <div class="form-text" id="wbpFileHelp">Hanya berkas <code>.json</code> dengan struktur data WBP yang valid.</div>
+        </div>
+        <div class="col-12 col-md-5">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+            Perbarui Data WBP
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="surface-card table-card" aria-labelledby="wbp-list-title">
+  <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h3 class="h6 fw-bold mb-0" id="wbp-list-title">WBP aktif (<%= wbpList.length %> orang)</h3>
+    </div>
+    <span class="badge badge-soft-neutral">
+      <i class="bi bi-database" aria-hidden="true"></i> Data tersinkronisasi
+    </span>
+  </div>
+
+  <% if (wbpList.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+      <p class="empty-title">Belum ada data WBP</p>
+      <p class="empty-text">Unggah berkas JSON data WBP untuk mulai mengelola status kunjungan.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover align-middle">
+        <caption class="visually-hidden">Daftar Warga Binaan Pemasyarakatan aktif</caption>
+        <thead>
+          <tr>
+            <th scope="col">WBP / No. Reg / Kamar Sel</th>
+            <th scope="col">Tgl Lahir / Usia</th>
+            <th scope="col">Status WBP / Kunjungan</th>
+            <th scope="col" class="text-end" style="min-width: 208px;">Ubah Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% wbpList.forEach(function(w, idx) { %>
+            <tr>
+              <td data-label="WBP / Kamar">
+                <div>
+                  <strong class="d-block"><%= w.nama %></strong>
+                  <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                    <code class="small"><%= w.noRegInstansi %></code>
+                    <span class="badge badge-soft-info" title="<%= w.lokasiSel || '-' %>">
+                      <i class="bi bi-geo-alt" aria-hidden="true"></i> <%= formatCellLocation(w.lokasiSel) %>
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Tgl Lahir / Usia">
+                <div>
+                  <div><%= w.tanggalLahir %></div>
+                  <span class="d-block small text-muted"><%= w.usia %> tahun</span>
+                </div>
+              </td>
+              <td data-label="Status WBP / Kunjungan">
+                <div class="d-flex flex-wrap gap-1">
+                  <span class="badge badge-soft-primary" title="Jenis WBP"><%= w.jenisWbp %></span>
+                  <% if (w.bolehDikunjungi === 'Boleh Dikunjungi') { %>
+                    <span class="badge badge-soft-success">Boleh Dikunjungi</span>
+                  <% } else if (w.bolehDikunjungi === 'Hanya Titipan Barang') { %>
+                    <span class="badge badge-soft-warning">Hanya Titipan Barang</span>
+                  <% } else { %>
+                    <span class="badge badge-soft-danger">Tidak Boleh Dikunjungi</span>
+                  <% } %>
+                </div>
+              </td>
+              <td class="table-actions-cell" data-label="Ubah Status">
+                <form action="/admin/wbp/status" method="POST" class="wbp-status-form d-flex flex-wrap align-items-center gap-1 justify-content-end">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="wbpId" value="<%= w.wbpId %>">
+                  <label class="visually-hidden" for="wbpStatus<%= idx %>">Status kunjungan <%= w.nama %></label>
+                  <select id="wbpStatus<%= idx %>" name="status" class="form-select form-select-sm wbp-status-select">
+                    <option value="Boleh Dikunjungi" <%= w.bolehDikunjungi === 'Boleh Dikunjungi' ? 'selected' : '' %>>Boleh Dikunjungi</option>
+                    <option value="Hanya Titipan Barang" <%= w.bolehDikunjungi === 'Hanya Titipan Barang' ? 'selected' : '' %>>Titipan Barang</option>
+                    <option value="Tidak Boleh Dikunjungi" <%= w.bolehDikunjungi === 'Tidak Boleh Dikunjungi' ? 'selected' : '' %>>Tidak Boleh</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary" title="Simpan status" aria-label="Simpan status <%= w.nama %>">
+                    <i class="bi bi-check2" aria-hidden="true"></i>
+                    <span class="d-lg-none">Simpan</span>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

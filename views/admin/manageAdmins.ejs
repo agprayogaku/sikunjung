@@ -1,0 +1,210 @@
+<%- include('./partials/adminHeader', { title: 'Kelola Akun Petugas', active: 'admins' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Khusus master</span>
+    <h2 class="page-title">Manajemen Akun Petugas</h2>
+    <p class="page-subtitle">Kelola akun petugas dan setujui permintaan reset password sementara.</p>
+  </div>
+  <span class="badge badge-soft-warning">
+    <i class="bi bi-shield-lock" aria-hidden="true"></i> Akses Master
+  </span>
+</div>
+
+<% if (typeof approvedTempPassword !== 'undefined' && approvedTempPassword) { %>
+  <div class="surface-card p-4 mb-4 border-warning" role="alert">
+    <div class="d-flex align-items-start gap-2 mb-3">
+      <span class="icon-square warning"><i class="bi bi-key" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="h6 fw-bold mb-1">Password sementara berhasil dibuat</h3>
+        <p class="small text-muted mb-0">Hanya ditampilkan sekali. Sampaikan kepada petugas yang bersangkutan.</p>
+      </div>
+    </div>
+
+    <div class="surface-muted p-3 mb-3">
+      <span class="section-label mb-1">Akun <strong><%= targetUsername %></strong></span>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <code class="h5 mb-0 text-primary fw-bold"><%= approvedTempPassword %></code>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-copy="<%= approvedTempPassword %>">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> Salin
+        </button>
+      </div>
+    </div>
+
+    <p class="small text-muted mb-0">
+      Petugas akan diminta mengganti password saat login pertama.
+    </p>
+  </div>
+<% } %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<% if (pendingResets && pendingResets.length > 0) { %>
+  <section class="surface-card table-card mb-4" aria-labelledby="pending-reset-title">
+    <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h3 class="h6 fw-bold mb-0" id="pending-reset-title">Permintaan reset password (<%= pendingResets.length %>)</h3>
+      </div>
+      <span class="badge badge-soft-warning"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Menunggu</span>
+    </div>
+
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover align-middle">
+        <caption class="visually-hidden">Permintaan reset password yang menunggu persetujuan</caption>
+        <thead>
+          <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Waktu Pengajuan</th>
+            <th scope="col" class="text-end">Aksi Master</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% pendingResets.forEach(function(r) { %>
+            <tr>
+              <td data-label="Username"><strong><%= r.username %></strong></td>
+              <td class="text-nowrap" data-label="Waktu Pengajuan"><%= r.requestedAt.slice(0, 19).replace('T', ' ') %> WIB</td>
+              <td class="table-actions-cell" data-label="Aksi Master">
+                <div class="table-actions justify-content-end">
+                  <form action="/admin/kelola-admin/approve-reset" method="POST"
+                        data-confirm="Setujui permintaan reset password untuk akun <%= r.username %> dan buat password sementara?"
+                        data-confirm-title="Setujui reset password"
+                        data-confirm-label="Ya, setujui">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="resetId" value="<%= r.id %>">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                      <i class="bi bi-check2" aria-hidden="true"></i> Setujui
+                    </button>
+                  </form>
+                  <form action="/admin/kelola-admin/reject-reset" method="POST"
+                        data-confirm="Tolak permintaan reset password untuk akun <%= r.username %>?"
+                        data-confirm-title="Tolak reset password"
+                        data-confirm-label="Ya, tolak"
+                        data-confirm-variant="danger">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="resetId" value="<%= r.id %>">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary text-danger">
+                      <i class="bi bi-x-circle" aria-hidden="true"></i> Tolak
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% } %>
+
+<section class="surface-card table-card mb-4" aria-labelledby="admin-list-title">
+  <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h3 class="h6 fw-bold mb-0" id="admin-list-title">Daftar akun petugas lapas</h3>
+    </div>
+    <span class="badge badge-soft-neutral">
+      <i class="bi bi-person-badge" aria-hidden="true"></i> <%= admins.length %> akun
+    </span>
+  </div>
+
+  <div class="table-responsive table-stack-wrap border-top">
+    <table class="table table-stack table-hover align-middle">
+      <caption class="visually-hidden">Daftar akun petugas SIKUNJUNG</caption>
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Peran</th>
+          <th scope="col">Terakhir Login</th>
+          <th scope="col">Dibuat</th>
+          <th scope="col" class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% admins.forEach(function(a) { %>
+          <tr>
+            <td data-label="Username"><strong><%= a.username %></strong></td>
+            <td data-label="Peran">
+              <% if (a.role === 'MASTER') { %>
+                <span class="badge badge-soft-warning"><i class="bi bi-shield-lock" aria-hidden="true"></i> MASTER</span>
+              <% } else { %>
+                <span class="badge badge-soft-primary">ADMIN</span>
+              <% } %>
+            </td>
+            <td class="text-nowrap" data-label="Terakhir Login">
+              <%= a.lastLoginAt ? a.lastLoginAt.slice(0, 19).replace('T', ' ') + ' WIB' : 'Belum pernah' %>
+            </td>
+            <td class="text-nowrap" data-label="Dibuat"><%= a.createdAt ? a.createdAt.slice(0, 10) : '-' %></td>
+            <td class="table-actions-cell" data-label="Aksi">
+              <div class="table-actions justify-content-end">
+                <% if (adminUser.id !== a.id) { %>
+                  <form action="/admin/kelola-admin/delete" method="POST"
+                        data-confirm="Hapus akun petugas <%= a.username %>? Tindakan ini tidak dapat dibatalkan."
+                        data-confirm-title="Hapus akun petugas"
+                        data-confirm-label="Ya, hapus"
+                        data-confirm-variant="danger">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="adminId" value="<%= a.id %>">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary text-danger">
+                      <i class="bi bi-trash" aria-hidden="true"></i> Hapus
+                    </button>
+                  </form>
+                <% } else { %>
+                  <span class="small text-muted">(Akun Anda)</span>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="surface-card p-4" aria-labelledby="admin-create-title">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <span class="icon-square primary"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
+    <div>
+      <h3 class="h6 fw-bold mb-0" id="admin-create-title">Tambah akun petugas baru</h3>
+      <p class="text-muted small mb-0">Akun baru dapat langsung digunakan untuk masuk ke panel petugas.</p>
+    </div>
+  </div>
+
+  <form action="/admin/kelola-admin/create" method="POST" class="row g-3">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="newAdminUsername">Username baru</label>
+      <input type="text" id="newAdminUsername" name="username" class="form-control" placeholder="Contoh: admin_loket_2" autocomplete="off" required>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="newAdminRole">Peran</label>
+      <select id="newAdminRole" name="role" class="form-select" required>
+        <option value="ADMIN" selected>ADMIN — Petugas Operasional</option>
+        <option value="MASTER">MASTER — Administrator Penuh</option>
+      </select>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="newAdminPassword">Password awal</label>
+      <div class="password-field">
+        <input type="password" id="newAdminPassword" name="password" class="form-control" placeholder="Min. 8 karakter" autocomplete="new-password" required minlength="8">
+        <button type="button" class="password-toggle" data-toggle-password="#newAdminPassword" aria-label="Tampilkan password" aria-pressed="false">
+          <i class="bi bi-eye" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="form-text">Gunakan huruf besar, huruf kecil, angka, dan simbol.</div>
+    </div>
+
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-person-plus" aria-hidden="true"></i> Buat Akun Petugas
+      </button>
+    </div>
+  </form>
+</section>
+
+<%- include('./partials/adminFooter') %>

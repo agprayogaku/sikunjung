@@ -1,0 +1,134 @@
+<%- include('./partials/adminHeader', { title: 'Pengaturan Sistem', active: 'settings' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Konfigurasi</span>
+    <h2 class="page-title">Pengaturan Sistem SIKUNJUNG</h2>
+    <p class="page-subtitle">Kelola identitas instansi, batas kuota harian, tanggal tutup khusus, dan catatan cetak.</p>
+  </div>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success" role="alert">
+    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+    <span>Pengaturan berhasil disimpan dan langsung diterapkan ke seluruh sistem.</span>
+  </div>
+<% } %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<form action="/admin/pengaturan" method="POST">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <section class="form-section" aria-labelledby="settings-identity-title">
+    <div class="form-section-header">
+      <span class="form-section-icon"><i class="bi bi-building" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="form-section-title" id="settings-identity-title">Identitas instansi</h3>
+        <p class="form-section-subtitle">Nama kementerian, kantor wilayah, dan instansi lapas.</p>
+      </div>
+    </div>
+    <div class="form-section-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="settingsMinistry">Nama kementerian</label>
+          <input type="text" id="settingsMinistry" name="ministry" class="form-control" value="<%= settings.ministry %>" required>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="settingsRegionalOffice">Kantor wilayah</label>
+          <input type="text" id="settingsRegionalOffice" name="regionalOffice" class="form-control" value="<%= settings.regionalOffice %>" required>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label" for="settingsAgencyName">Nama instansi lapas</label>
+          <input type="text" id="settingsAgencyName" name="agencyName" class="form-control" value="<%= settings.agencyName %>" required>
+        </div>
+
+        <div class="col-12 col-md-8">
+          <label class="form-label" for="settingsAddress">Alamat lengkap</label>
+          <input type="text" id="settingsAddress" name="address" class="form-control" value="<%= settings.address %>" required>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="settingsPhone">No. telepon instansi</label>
+          <input type="text" id="settingsPhone" name="phone" class="form-control" value="<%= settings.phone %>" required>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="settings-quota-title">
+    <div class="form-section-header">
+      <span class="form-section-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="form-section-title" id="settings-quota-title">Batasan kuota harian</h3>
+        <p class="form-section-subtitle">Kapasitas maksimal pendaftaran dan pengunjung per hari.</p>
+      </div>
+    </div>
+    <div class="form-section-body">
+      <div class="row g-3">
+        <div class="col-12 col-sm-6">
+          <label class="form-label" for="settingsMaxRegistrations">Batas maksimal pendaftaran per hari</label>
+          <input type="number" id="settingsMaxRegistrations" name="maxDailyRegistrations" class="form-control" value="<%= settings.maxDailyRegistrations %>" min="1" max="200" required>
+          <div class="form-text">Standar SOP: 40 pendaftaran.</div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+          <label class="form-label" for="settingsMaxVisitors">Batas maksimal total pengunjung per hari</label>
+          <input type="number" id="settingsMaxVisitors" name="maxDailyVisitors" class="form-control" value="<%= settings.maxDailyVisitors %>" min="1" max="500" required>
+          <div class="form-text">Standar SOP: 60 orang pengunjung.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="settings-closed-title">
+    <div class="form-section-header">
+      <span class="form-section-icon"><i class="bi bi-calendar-x" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="form-section-title" id="settings-closed-title">Tanggal tutup khusus</h3>
+        <p class="form-section-subtitle">Hari libur nasional atau dinas yang menutup layanan kunjungan.</p>
+      </div>
+    </div>
+    <div class="form-section-body">
+      <label class="form-label" for="settingsClosedDates">Daftar tanggal tutup</label>
+      <textarea id="settingsClosedDates" name="closedSpecialDates" class="form-control font-monospace" rows="4" placeholder="2026-08-17&#10;2026-12-25" aria-describedby="settingsClosedHelp"><%= (settings.closedSpecialDates || []).join('\n') %></textarea>
+      <div class="form-text" id="settingsClosedHelp">Satu tanggal per baris dengan format <code>YYYY-MM-DD</code>.</div>
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="settings-notes-title">
+    <div class="form-section-header">
+      <span class="form-section-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="form-section-title" id="settings-notes-title">Catatan kustom dokumen cetak</h3>
+        <p class="form-section-subtitle">Teks tambahan pada tiket antrean dan bukti pendaftaran.</p>
+      </div>
+    </div>
+    <div class="form-section-body">
+      <div class="mb-3">
+        <label class="form-label" for="settingsTicketNotes">Catatan pada tiket antrean petugas (A6)</label>
+        <input type="text" id="settingsTicketNotes" name="ticketCustomNotes" class="form-control" value="<%= settings.ticketCustomNotes %>" required>
+      </div>
+
+      <div class="mb-0">
+        <label class="form-label" for="settingsProofNotes">Catatan ketentuan pada bukti pendaftaran publik (A6)</label>
+        <textarea id="settingsProofNotes" name="proofCustomNotes" class="form-control" rows="3" required><%= settings.proofCustomNotes %></textarea>
+      </div>
+    </div>
+  </section>
+
+  <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+    <a href="/admin/dashboard" class="btn btn-outline-secondary">Batal</a>
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-save" aria-hidden="true"></i> Simpan Seluruh Pengaturan
+    </button>
+  </div>
+</form>
+
+<%- include('./partials/adminFooter') %>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SIKUNJUNG - Sistem Informasi Pendaftaran Kunjungan Online Lapas Kelas IIB Purwakarta.">
+  <title><%= typeof title !== 'undefined' ? title + ' - SIKUNJUNG' : 'SIKUNJUNG - Lapas Kelas IIB Purwakarta' %></title>
+  <%- include('./headAssets') %>
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+
+  <header class="sikunjung-nav">
+    <div class="container-xxl public-nav-inner">
+      <a href="/" class="brand" aria-label="SIKUNJUNG - Beranda">
+        <span class="brand-mark" aria-hidden="true"><i class="bi bi-building-lock"></i></span>
+        <span class="brand-text">
+          <span class="brand-title">SIKUNJUNG</span>
+          <span class="brand-subtitle d-none d-sm-block">Lapas Kelas IIB Purwakarta</span>
+        </span>
+      </a>
+
+      <nav class="public-nav-links d-none d-lg-flex" aria-label="Navigasi utama">
+        <a href="/" class="public-nav-link <%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'home' ? 'aria-current="page"' : '' %>>Beranda</a>
+        <% if (typeof active === 'undefined' || active !== 'home') { %>
+          <a href="/daftar" class="public-nav-link <%= typeof active !== 'undefined' && active === 'register' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'register' ? 'aria-current="page"' : '' %>>Daftar Kunjungan</a>
+        <% } %>
+        <a href="/status" class="public-nav-link <%= typeof active !== 'undefined' && active === 'status' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'status' ? 'aria-current="page"' : '' %>>Cek Status</a>
+      </nav>
+
+      <div class="public-nav-actions">
+        <button type="button" class="theme-toggle-btn" aria-label="Aktifkan tema gelap" aria-pressed="false" title="Ganti tema">
+          <i class="theme-icon bi bi-moon-stars" aria-hidden="true"></i>
+          <span class="theme-text">Tema Gelap</span>
+        </button>
+        <button type="button" class="btn btn-ghost btn-icon d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#publicMobileNav" aria-controls="publicMobileNav" aria-label="Buka menu">
+          <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="publicMobileNav" aria-labelledby="publicMobileNavLabel">
+    <div class="offcanvas-header border-bottom">
+      <h2 class="offcanvas-title h6 fw-bold" id="publicMobileNavLabel">Menu Navigasi</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column gap-1">
+      <a href="/" class="mobile-nav-link <%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'home' ? 'aria-current="page"' : '' %>>
+        <i class="bi bi-house-door" aria-hidden="true"></i> Beranda
+      </a>
+      <a href="/daftar" class="mobile-nav-link <%= typeof active !== 'undefined' && active === 'register' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'register' ? 'aria-current="page"' : '' %>>
+        <i class="bi bi-calendar-plus" aria-hidden="true"></i> Daftar Kunjungan
+      </a>
+      <a href="/status" class="mobile-nav-link <%= typeof active !== 'undefined' && active === 'status' ? 'active' : '' %>" <%= typeof active !== 'undefined' && active === 'status' ? 'aria-current="page"' : '' %>>
+        <i class="bi bi-search" aria-hidden="true"></i> Cek Status &amp; Pembatalan
+      </a>
+    </div>
+  </div>
+
+  <main id="main-content">

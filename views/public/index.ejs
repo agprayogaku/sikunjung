@@ -1,0 +1,204 @@
+<%- include('../partials/header', { title: 'Beranda Layanan Pendaftaran Kunjungan Online', active: 'home' }) %>
+
+<div class="page-container">
+  <section class="hero mb-4" aria-labelledby="hero-title">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <div class="hero-content">
+          <h1 class="hero-title" id="hero-title">Pendaftaran Kunjungan Online SIKUNJUNG</h1>
+          <p class="hero-lead">
+            Daftarkan kunjungan WBP secara mandiri dari rumah. Lebih tertib, nyaman,
+            dan tanpa antre panjang.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/daftar" class="btn btn-primary btn-lg">
+              <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+              Mulai Pendaftaran
+            </a>
+            <a href="/status" class="btn btn-outline-secondary btn-lg">
+              <i class="bi bi-search" aria-hidden="true"></i>
+              Cek Status / Batal
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-visual-ring">
+            <div class="hero-visual-icon">
+              <i class="bi bi-building-lock"></i>
+            </div>
+          </div>
+          <span class="hero-float top"><i class="bi bi-check2-circle"></i> Terverifikasi</span>
+          <span class="hero-float bottom"><i class="bi bi-activity"></i> Kuota real-time</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-4" aria-labelledby="steps-title">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <span class="section-label">Alur layanan</span>
+        <h2 class="h5 fw-bold mb-0" id="steps-title">Tiga langkah sebelum berkunjung</h2>
+      </div>
+    </div>
+    <div class="step-flow-grid">
+      <div class="step-flow">
+        <span class="step-flow-number">1</span>
+        <h3 class="h6 fw-bold mb-1">Cari &amp; pilih WBP</h3>
+        <p class="text-muted small mb-0">Cari nama WBP, lalu pilih jadwal yang tersedia.</p>
+      </div>
+      <div class="step-flow">
+        <span class="step-flow-number">2</span>
+        <h3 class="h6 fw-bold mb-1">Isi data rombongan</h3>
+        <p class="text-muted small mb-0">Lengkapi pendaftar utama dan pengikut sesuai e-KTP.</p>
+      </div>
+      <div class="step-flow">
+        <span class="step-flow-number">3</span>
+        <h3 class="h6 fw-bold mb-1">Datang &amp; verifikasi</h3>
+        <p class="text-muted small mb-0">Verifikasi di loket untuk memperoleh nomor antrean.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-lg-7">
+      <section class="surface-card h-100 p-4" aria-labelledby="schedule-title">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="icon-square primary"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+          <div>
+            <h2 class="h6 fw-bold mb-0" id="schedule-title">Jadwal Kunjungan WBP</h2>
+            <p class="text-muted small mb-0">Rotasi hari kunjungan berdasarkan jenis WBP.</p>
+          </div>
+        </div>
+
+        <table class="table table-sm align-middle mb-3">
+          <caption class="visually-hidden">Jadwal kunjungan berdasarkan kategori WBP</caption>
+          <thead>
+            <tr>
+              <th scope="col" style="width: 30%;">Kategori</th>
+              <th scope="col">Hari Kunjungan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong class="text-primary">Narapidana</strong></td>
+              <td>
+                Senin, Selasa, Kamis, dan
+                <span class="badge badge-soft-primary ms-1">Sabtu Minggu Ke-2 &amp; Ke-4</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong class="text-primary">Tahanan</strong></td>
+              <td>
+                Senin, Rabu, dan
+                <span class="badge badge-soft-warning ms-1">Sabtu Minggu Ke-1, Ke-3, &amp; Ke-5</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong class="text-danger">Hari Tutup</strong></td>
+              <td><span class="text-danger fw-semibold">Jumat &amp; Minggu (layanan tutup)</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-info mb-0">
+          <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+          <span>
+            Pendaftaran dibuka <strong>H+0 sampai H+3</strong>. Khusus hari H (H+0), batas akhir
+            pendaftaran pukul <strong>14.30 WIB</strong> (Sabtu: <strong>11.30 WIB</strong>).
+          </span>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <section class="surface-card h-100 p-4" aria-labelledby="quota-title">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="icon-square primary"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <div>
+            <h2 class="h6 fw-bold mb-0" id="quota-title">Ketentuan Kuota &amp; Rombongan</h2>
+            <p class="text-muted small mb-0">Agar kunjungan aman dan tertib.</p>
+          </div>
+        </div>
+
+        <ul class="list-unstyled d-flex flex-column gap-3 small mb-0">
+          <li class="d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1" aria-hidden="true"></i>
+            <span><strong>Komposisi:</strong> maksimal <strong>4 dewasa</strong> tanpa anak, atau <strong>3 dewasa</strong> dengan <strong>1–2 anak</strong> (0–14 tahun).</span>
+          </li>
+          <li class="d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1" aria-hidden="true"></i>
+            <span><strong>Identitas &amp; kapasitas:</strong> e-KTP dengan NIK 16 digit; 40 pendaftaran / 60 pengunjung per hari.</span>
+          </li>
+          <li class="d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1" aria-hidden="true"></i>
+            <span><strong>Barang titipan:</strong> makanan matang maks. 3 bungkus, pakaian maks. 3 potong, obat wajib resep dokter, dan uang titipan maks. Rp 200.000.</span>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <section class="surface-card p-4" aria-labelledby="faq-title">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <span class="icon-square primary"><i class="bi bi-question-circle" aria-hidden="true"></i></span>
+      <div>
+        <h2 class="h6 fw-bold mb-0" id="faq-title">Pertanyaan yang Sering Diajukan</h2>
+        <p class="text-muted small mb-0">Informasi singkat seputar alur pendaftaran kunjungan.</p>
+      </div>
+    </div>
+
+    <div class="accordion" id="faqAccordion">
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="faqHeadingOne">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne" aria-expanded="false" aria-controls="faqOne">
+            Apakah setelah mendaftar online saya langsung mendapatkan nomor antrean?
+          </button>
+        </h3>
+        <div id="faqOne" class="accordion-collapse collapse" aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Belum. Pendaftaran online menerbitkan <strong>Nomor Registrasi</strong> berupa bukti pendaftaran A6 dengan QR.
+            Nomor antrean fisik (seperti A 001, A 002) baru diterbitkan oleh petugas loket saat Anda hadir
+            dan melakukan verifikasi e-KTP asli.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="faqHeadingTwo">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwo" aria-expanded="false" aria-controls="faqTwo">
+            Bagaimana cara menghitung urutan minggu Sabtu dalam sebulan?
+          </button>
+        </h3>
+        <div id="faqTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Sabtu tanggal 1–7 adalah Minggu ke-1 (Tahanan). Sabtu tanggal 8–14 adalah Minggu ke-2 (Narapidana).
+            Sabtu tanggal 15–21 adalah Minggu ke-3 (Tahanan). Sabtu tanggal 22–28 adalah Minggu ke-4 (Narapidana).
+            Sabtu tanggal 29–31 adalah Minggu ke-5 (Tahanan). Sistem otomatis menyesuaikan pilihan tanggal
+            saat Anda memilih WBP.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="faqHeadingThree">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqThree" aria-expanded="false" aria-controls="faqThree">
+            Bagaimana jika saya berhalangan hadir setelah mendaftar?
+          </button>
+        </h3>
+        <div id="faqThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Anda dapat membatalkan pendaftaran secara mandiri melalui menu <strong>Cek Status</strong> dengan
+            memasukkan Nomor Registrasi dan NIK pendaftar utama. Setelah dibatalkan, kuota WBP akan langsung
+            dibebaskan dan keluarga lain dapat mendaftar.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../partials/footer') %>

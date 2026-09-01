@@ -1,0 +1,131 @@
+<%- include('./partials/adminHeader', { title: 'Backup & Restore Data', active: 'backup' }) %>
+
+<div class="page-header">
+  <div>
+    <span class="section-label">Pemeliharaan sistem</span>
+    <h2 class="page-title">Pencadangan &amp; Pemulihan Data</h2>
+    <p class="page-subtitle">Cadangkan seluruh direktori data JSON atau pulihkan sistem dari berkas ZIP arsip.</p>
+  </div>
+
+  <form action="/admin/backup/buat" method="POST"
+        data-confirm="Buat arsip backup manual seluruh data storage sekarang?"
+        data-confirm-title="Buat backup manual">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-archive" aria-hidden="true"></i> Buat Backup Manual
+    </button>
+  </form>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success" role="alert">
+    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+    <span><%= success %></span>
+  </div>
+<% } %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<section class="surface-card p-4 mb-4" aria-labelledby="restore-title">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <span class="icon-square warning"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></span>
+    <div>
+      <h3 class="h6 fw-bold mb-0" id="restore-title">Pemulihan sistem dari berkas ZIP</h3>
+      <p class="text-muted small mb-0">Tindakan ini akan menggantikan seluruh data aktif.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+    <span>
+      Mengunggah berkas ZIP backup akan menimpa data penyimpanan saat ini. Sistem membuat
+      <strong>safety backup</strong> secara otomatis sebelum proses restore dijalankan.
+    </span>
+  </div>
+
+  <form action="/admin/backup/restore" method="POST" enctype="multipart/form-data" class="backup-restore-form"
+        data-confirm="PERINGATAN KRUSIAL: Pulihkan sistem sekarang? Seluruh data aktif akan digantikan oleh isi berkas ZIP ini."
+        data-confirm-title="Restore data sistem"
+        data-confirm-label="Ya, pulihkan data"
+        data-confirm-variant="danger">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label class="form-label" for="backupZip">Berkas ZIP backup</label>
+    <div class="backup-restore-controls">
+      <div class="file-control">
+        <input type="file" id="backupZip" name="backupZip" accept=".zip,application/zip" class="file-control-input" aria-describedby="backupZipHelp" required>
+        <span class="btn btn-outline-secondary file-control-button" aria-hidden="true">
+          <i class="bi bi-folder2-open" aria-hidden="true"></i> Pilih Berkas
+        </span>
+        <span class="file-control-name" data-file-name-for="backupZip" aria-live="polite">Belum ada berkas dipilih</span>
+      </div>
+      <button type="submit" class="btn btn-outline-secondary text-danger">
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Pulihkan Data
+      </button>
+    </div>
+    <div class="form-text" id="backupZipHelp">Gunakan berkas backup yang dibuat oleh SIKUNJUNG.</div>
+  </form>
+</section>
+
+<section class="surface-card table-card" aria-labelledby="backup-list-title">
+  <div class="p-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h3 class="h6 fw-bold mb-0" id="backup-list-title"><%= backups.length %> berkas tersedia</h3>
+    </div>
+    <span class="badge badge-soft-neutral">
+      <i class="bi bi-hdd" aria-hidden="true"></i> Folder backup
+    </span>
+  </div>
+
+  <% if (backups.length === 0) { %>
+    <div class="empty-state border-top">
+      <span class="empty-icon"><i class="bi bi-archive" aria-hidden="true"></i></span>
+      <p class="empty-title">Belum ada berkas backup</p>
+      <p class="empty-text">Gunakan tombol Buat Backup Manual di atas atau tunggu proses backup otomatis berjalan.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive table-stack-wrap border-top">
+      <table class="table table-stack table-hover align-middle">
+        <caption class="visually-hidden">Daftar berkas cadangan sistem</caption>
+        <thead>
+          <tr>
+            <th scope="col">Nama Berkas</th>
+            <th scope="col">Tipe</th>
+            <th scope="col">Ukuran</th>
+            <th scope="col">Waktu Dibuat</th>
+            <th scope="col" class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% backups.forEach(function(b) { %>
+            <tr>
+              <td data-label="Nama Berkas"><code class="text-break"><%= b.fileName %></code></td>
+              <td data-label="Tipe">
+                <% if (b.type === 'auto') { %>
+                  <span class="badge badge-soft-info"><i class="bi bi-clock-history" aria-hidden="true"></i> OTOMATIS</span>
+                <% } else { %>
+                  <span class="badge badge-soft-primary"><i class="bi bi-person-gear" aria-hidden="true"></i> MANUAL</span>
+                <% } %>
+              </td>
+              <td class="text-nowrap" data-label="Ukuran"><%= b.formattedSize %></td>
+              <td class="text-nowrap" data-label="Waktu Dibuat"><%= b.createdAt.slice(0, 19).replace('T', ' ') %> WIB</td>
+              <td class="table-actions-cell" data-label="Aksi">
+                <div class="table-actions justify-content-end">
+                  <a href="/admin/backup/unduh/<%= encodeURIComponent(b.fileName) %>?type=<%= b.type %>" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download" aria-hidden="true"></i> Unduh ZIP
+                  </a>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('./partials/adminFooter') %>

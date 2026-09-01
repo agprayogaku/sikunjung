@@ -1,0 +1,50 @@
+<%- include('../partials/authHeader', {
+  title: 'Login Petugas',
+  authTitle: 'Portal Petugas Lapas',
+  authSubtitle: 'Gunakan akun petugas resmi Anda.'
+}) %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span><%= error %></span>
+  </div>
+<% } %>
+
+<form action="/admin/login" method="POST">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="mb-3">
+    <label class="form-label" for="username">Username petugas</label>
+    <input type="text" id="username" name="username" class="form-control" placeholder="Contoh: admin_loket" autocomplete="username" required autofocus>
+  </div>
+
+  <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <label class="form-label" for="password">Password</label>
+      <a href="/admin/lupa-password" class="small text-muted">Lupa password?</a>
+    </div>
+    <div class="password-field">
+      <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password" autocomplete="current-password" required>
+      <button type="button" class="password-toggle" data-toggle-password="#password" aria-label="Tampilkan password" aria-pressed="false">
+        <i class="bi bi-eye" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary w-100">
+    <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Masuk ke panel petugas
+  </button>
+</form>
+
+<div class="alert alert-warning small mt-3 mb-0">
+  <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+  <span>Jangan bagikan kredensial. Sesi berakhir setelah 30 menit tidak aktif.</span>
+</div>
+
+<div class="auth-footer">
+  <a href="/" class="text-muted">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke halaman publik
+  </a>
+</div>
+
+<%- include('../partials/authFooter') %>
