@@ -23,8 +23,8 @@ export function getUpcomingVisitDate(wbpType: WbpType = 'Narapidana'): string {
   }
 
   // shortcut: jendela H+1..H+3 bisa kosong (mis. Kamis dengan Sabtu minggu ganjil
-  // untuk Narapidana); pakai H+0 dengan cutoff asli. upgrade: freeze luxon Settings.now
-  // di setup tes bila suite dijalankan setelah pukul 14.30 WIB pada hari tersebut.
+  // untuk Narapidana); pakai H+0 dengan cutoff asli. jam luxon sudah dibekukan di
+  // tests/setupEnv.js, jadi jalur ini hanya jaring pengaman bila freeze dilepas.
   const today = now.toFormat('yyyy-MM-dd');
   const todayResult = isDateAllowedForWbp(today, wbpType, {
     now,
